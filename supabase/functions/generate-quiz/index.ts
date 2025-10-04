@@ -11,7 +11,15 @@ serve(async (req) => {
   try {
     const { topic, quizType } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY is not set');
+      throw new Error('LOVABLE_API_KEY is not configured');
+    }
+    
     const numQuestions = quizType === 'final_test' ? 10 : 25;
+
+    console.log('Generating quiz for topic:', topic, 'type:', quizType);
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
