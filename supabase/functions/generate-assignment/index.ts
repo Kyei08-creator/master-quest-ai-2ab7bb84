@@ -75,13 +75,22 @@ Return as JSON:
       }),
     });
 
-    const data = await aiResponse.json();
     if (!aiResponse.ok) {
-      console.error('AI API Error:', data);
-      throw new Error(data.error?.message || 'AI generation failed');
+      const errorData = await aiResponse.json();
+      console.error('AI API Error:', aiResponse.status, errorData);
+      throw new Error(errorData.error?.message || `AI API returned ${aiResponse.status}`);
     }
+
+    const data = await aiResponse.json();
+    console.log('AI Response:', JSON.stringify(data, null, 2));
     
-    const assignmentData = JSON.parse(data.choices[0].message.content);
+    let assignmentData;
+    try {
+      assignmentData = JSON.parse(data.choices[0].message.content);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', data.choices[0].message.content);
+      throw new Error('Invalid AI response format');
+    }
 
     await supabase.from('assignments').upsert({
       module_id: moduleId,
