@@ -117,10 +117,19 @@ IMPORTANT: Output ONLY raw JSON. Do not include any markdown, backticks, or code
       }
     }
 
-    await supabase.from('assignments').upsert({
-      module_id: moduleId,
-      content: assignmentData,
-    }, { onConflict: 'module_id' });
+    const { data: upsertData, error: upsertError } = await supabase
+      .from('assignments')
+      .upsert({
+        module_id: moduleId,
+        content: assignmentData,
+      }, { onConflict: 'module_id' })
+      .select('*')
+      .maybeSingle();
+
+    if (upsertError) {
+      console.error('DB upsert error:', upsertError);
+      throw new Error('Failed to save assignment');
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
