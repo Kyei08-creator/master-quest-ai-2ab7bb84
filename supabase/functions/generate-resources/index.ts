@@ -36,6 +36,7 @@ serve(async (req) => {
           role: 'user',
           content: `Generate 5 high-quality learning resources for the topic "${topic}". Return ONLY a raw JSON array with format: [{"title": "...", "url": "..."}] with no code fences, no markdown, and no extra text. Use real URLs to quality resources like documentation, tutorials, or courses.`
         }],
+        tools: [{ googleSearch: {} }],
       }),
     });
 

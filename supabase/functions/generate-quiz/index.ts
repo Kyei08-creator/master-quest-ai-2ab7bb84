@@ -62,6 +62,7 @@ Return as JSON:
   }
 }`
         }],
+        tools: [{ googleSearch: {} }],
       }),
     });
 

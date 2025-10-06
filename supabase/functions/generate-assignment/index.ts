@@ -74,6 +74,7 @@ Return as JSON:
 
 IMPORTANT: Output ONLY raw JSON. Do not include any markdown, backticks, or code fences.`
         }],
+        tools: [{ googleSearch: {} }],
       }),
     });
 
