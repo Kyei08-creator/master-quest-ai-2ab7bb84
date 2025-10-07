@@ -37,14 +37,14 @@ interface QuizTabProps {
 const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [generating, setGenerating] = useState(false);
+  const [generatingType, setGeneratingType] = useState<"quiz" | "final_test" | null>(null);
   const [quizType, setQuizType] = useState<"quiz" | "final_test" | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const generateQuiz = async (type: "quiz" | "final_test") => {
-    setGenerating(true);
+    setGeneratingType(type);
     setQuizType(type);
     setShowResults(false);
     setAnswers({});
@@ -63,7 +63,7 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
       console.error("Quiz generation error:", error);
       toast.error(error.message || "Failed to generate quiz");
     } finally {
-      setGenerating(false);
+      setGeneratingType(null);
     }
   };
 
@@ -125,8 +125,12 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => generateQuiz("quiz")} disabled={generating} className="w-full">
-              {generating ? "Generating..." : "Generate Practice Quiz"}
+            <Button 
+              onClick={() => generateQuiz("quiz")} 
+              disabled={generatingType !== null} 
+              className="w-full"
+            >
+              {generatingType === "quiz" ? "Generating..." : "Generate Practice Quiz"}
             </Button>
           </CardContent>
         </Card>
@@ -144,11 +148,11 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
           <CardContent>
             <Button
               onClick={() => generateQuiz("final_test")}
-              disabled={generating}
+              disabled={generatingType !== null}
               variant="default"
               className="w-full bg-red-600 hover:bg-red-700"
             >
-              {generating ? "Generating..." : "Take Final Test"}
+              {generatingType === "final_test" ? "Generating..." : "Take Final Test"}
             </Button>
           </CardContent>
         </Card>
