@@ -37,14 +37,14 @@ interface QuizTabProps {
 const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [generatingType, setGeneratingType] = useState<"quiz" | "final_test" | null>(null);
+  const [generating, setGenerating] = useState(false);
   const [quizType, setQuizType] = useState<"quiz" | "final_test" | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const generateQuiz = async (type: "quiz" | "final_test") => {
-    setGeneratingType(type);
+    setGenerating(true);
     setQuizType(type);
     setShowResults(false);
     setAnswers({});
@@ -63,7 +63,7 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
       console.error("Quiz generation error:", error);
       toast.error(error.message || "Failed to generate quiz");
     } finally {
-      setGeneratingType(null);
+      setGenerating(false);
     }
   };
 
@@ -125,12 +125,8 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => generateQuiz("quiz")} 
-              disabled={generatingType !== null} 
-              className="w-full"
-            >
-              {generatingType === "quiz" ? "Generating..." : "Generate Practice Quiz"}
+            <Button onClick={() => generateQuiz("quiz")} disabled={generating} className="w-full">
+              {generating ? "Generating..." : "Generate Practice Quiz"}
             </Button>
           </CardContent>
         </Card>
@@ -148,11 +144,11 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
           <CardContent>
             <Button
               onClick={() => generateQuiz("final_test")}
-              disabled={generatingType !== null}
+              disabled={generating}
               variant="default"
               className="w-full bg-red-600 hover:bg-red-700"
             >
-              {generatingType === "final_test" ? "Generating..." : "Take Final Test"}
+              {generating ? "Generating..." : "Take Final Test"}
             </Button>
           </CardContent>
         </Card>
@@ -278,20 +274,13 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
               Next
             </Button>
           ) : (
-            <div className="flex flex-col items-end gap-2">
-              {Object.keys(answers).length !== totalQuestions && (
-                <p className="text-sm text-muted-foreground">
-                  Answer all {totalQuestions} questions to submit ({totalQuestions - Object.keys(answers).length} remaining)
-                </p>
-              )}
-              <Button
-                onClick={submitQuiz}
-                disabled={Object.keys(answers).length !== totalQuestions}
-                className={quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}
-              >
-                Submit {quizType === "quiz" ? "Quiz" : "Final Test"}
-              </Button>
-            </div>
+            <Button
+              onClick={submitQuiz}
+              disabled={Object.keys(answers).length !== totalQuestions}
+              className={quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}
+            >
+              Submit {quizType === "quiz" ? "Quiz" : "Final Test"}
+            </Button>
           )}
         </div>
       </CardContent>
