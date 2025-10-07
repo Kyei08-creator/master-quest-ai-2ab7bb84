@@ -274,13 +274,20 @@ const QuizTab = ({ moduleId, moduleTopic, onComplete }: QuizTabProps) => {
               Next
             </Button>
           ) : (
-            <Button
-              onClick={submitQuiz}
-              disabled={Object.keys(answers).length !== totalQuestions}
-              className={quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}
-            >
-              Submit {quizType === "quiz" ? "Quiz" : "Final Test"}
-            </Button>
+            <div className="flex flex-col items-end gap-2">
+              {Object.keys(answers).length !== totalQuestions && (
+                <p className="text-sm text-muted-foreground">
+                  Answer all {totalQuestions} questions to submit ({totalQuestions - Object.keys(answers).length} remaining)
+                </p>
+              )}
+              <Button
+                onClick={submitQuiz}
+                disabled={Object.keys(answers).length !== totalQuestions}
+                className={quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}
+              >
+                Submit {quizType === "quiz" ? "Quiz" : "Final Test"}
+              </Button>
+            </div>
           )}
         </div>
       </CardContent>
