@@ -10,8 +10,11 @@ import { Badge } from "@/components/ui/badge";
 
 interface Question {
   question: string;
-  options: string[];
-  correctAnswer: number;
+  type: "mcq" | "true_false" | "short_answer" | "case_study" | "essay";
+  options?: string[];
+  correctAnswer?: number | string;
+  marks: number;
+  sectionTitle?: string;
 }
 
 interface QuizMetrics {
@@ -37,10 +40,11 @@ interface QuizTabProps {
 
 const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) => {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number | string>>({});
   const [generating, setGenerating] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
+  const [totalMarks, setTotalMarks] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const generateQuiz = async () => {
@@ -69,23 +73,36 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   const submitQuiz = async () => {
     if (!quizData) return;
     
-    let correctCount = 0;
+    let earnedMarks = 0;
+    let totalMarks = 0;
+    
     quizData.questions.forEach((q, index) => {
-      if (answers[index] === q.correctAnswer) {
-        correctCount++;
+      totalMarks += q.marks;
+      const userAnswer = answers[index];
+      
+      if (q.type === "mcq" || q.type === "true_false") {
+        if (userAnswer === q.correctAnswer) {
+          earnedMarks += q.marks;
+        }
+      } else if (q.type === "short_answer" || q.type === "case_study" || q.type === "essay") {
+        // For written answers, award full marks if answered (manual grading assumed)
+        if (userAnswer && String(userAnswer).trim().length > 0) {
+          earnedMarks += q.marks;
+        }
       }
     });
 
-    const percentage = Math.round((correctCount / quizData.questions.length) * 100);
+    const percentage = Math.round((earnedMarks / totalMarks) * 100);
     setScore(percentage);
+    setTotalMarks(earnedMarks);
     setShowResults(true);
 
     try {
       await supabase.from("quiz_attempts").insert([
         {
           module_id: moduleId,
-          score: correctCount,
-          total_questions: quizData.questions.length,
+          score: earnedMarks,
+          total_questions: totalMarks,
           attempt_type: quizType,
         },
       ]);
@@ -129,8 +146,8 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
           </CardTitle>
           <CardDescription>
             {quizType === "quiz" 
-              ? "Test your understanding with a practice quiz (25 questions)"
-              : "Take the final test to complete this module (80% required)"}
+              ? "Test your understanding with a practice quiz (25 MCQ questions)"
+              : "Take the final test to complete this module - 50 marks total (80% required to pass)"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -161,8 +178,10 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
               {score >= 80 ? "Passed!" : "Keep Practicing"}
             </Badge>
             <p className="text-muted-foreground">
-              You got {Object.values(answers).filter((a, i) => a === quizData!.questions[i].correctAnswer).length} out of{" "}
-              {quizData!.questions.length} correct
+              {quizType === "final_test" 
+                ? `You scored ${totalMarks} out of ${quizData!.questions.reduce((sum, q) => sum + q.marks, 0)} marks`
+                : `You got ${Object.values(answers).filter((a, i) => a === quizData!.questions[i].correctAnswer).length} out of ${quizData!.questions.length} correct`
+              }
             </p>
           </div>
           <Button onClick={() => { setQuizData(null); setShowResults(false); }}>
@@ -175,7 +194,7 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   }
 
   const totalQuestions = quizData.questions.length;
-  const questionsPerPage = 5;
+  const questionsPerPage = quizType === "final_test" ? 3 : 5;
   const startIndex = currentQuestionIndex;
   const endIndex = Math.min(startIndex + questionsPerPage, totalQuestions);
   const currentQuestions = quizData.questions.slice(startIndex, endIndex);
@@ -229,23 +248,52 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
         {currentQuestions.map((q, localIndex) => {
           const qIndex = startIndex + localIndex;
           return (
-            <div key={qIndex} className="p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium mb-4">
-                {qIndex + 1}. {q.question}
-              </h4>
-              <RadioGroup
-                value={answers[qIndex]?.toString()}
-                onValueChange={(value) => setAnswers({ ...answers, [qIndex]: parseInt(value) })}
-              >
-                {q.options.map((option, oIndex) => (
-                  <div key={oIndex} className="flex items-center space-x-2">
-                    <RadioGroupItem value={oIndex.toString()} id={`q${qIndex}-o${oIndex}`} />
-                    <Label htmlFor={`q${qIndex}-o${oIndex}`} className="cursor-pointer">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+            <div key={qIndex} className="p-6 bg-muted/50 rounded-lg border-l-4 border-primary">
+              {q.sectionTitle && (
+                <div className="mb-4">
+                  <Badge variant="secondary" className="text-sm font-semibold">
+                    {q.sectionTitle}
+                  </Badge>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="font-medium flex-1">
+                  {qIndex + 1}. {q.question}
+                </h4>
+                <Badge variant="outline" className="ml-4">
+                  {q.marks} {q.marks === 1 ? 'mark' : 'marks'}
+                </Badge>
+              </div>
+
+              {(q.type === "mcq" || q.type === "true_false") && q.options && (
+                <RadioGroup
+                  value={answers[qIndex]?.toString()}
+                  onValueChange={(value) => setAnswers({ ...answers, [qIndex]: parseInt(value) })}
+                >
+                  {q.options.map((option, oIndex) => (
+                    <div key={oIndex} className="flex items-center space-x-2 py-2">
+                      <RadioGroupItem value={oIndex.toString()} id={`q${qIndex}-o${oIndex}`} />
+                      <Label htmlFor={`q${qIndex}-o${oIndex}`} className="cursor-pointer">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
+
+              {(q.type === "short_answer" || q.type === "case_study" || q.type === "essay") && (
+                <textarea
+                  className="w-full p-3 mt-2 border rounded-md bg-background min-h-[120px] focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder={
+                    q.type === "essay" 
+                      ? "Write your detailed answer here (minimum 150 words recommended)..." 
+                      : "Type your answer here..."
+                  }
+                  value={answers[qIndex] as string || ""}
+                  onChange={(e) => setAnswers({ ...answers, [qIndex]: e.target.value })}
+                />
+              )}
             </div>
           );
         })}
