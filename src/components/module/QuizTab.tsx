@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +46,37 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   const [score, setScore] = useState(0);
   const [totalMarks, setTotalMarks] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // Persist quiz state locally so it survives navigation away from the module
+  const storageKey = `quizState:${moduleId}:${quizType}`;
+
+  useEffect(() => {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      try {
+        const saved = JSON.parse(raw);
+        if (saved.quizData) setQuizData(saved.quizData);
+        if (saved.answers) setAnswers(saved.answers);
+        setShowResults(!!saved.showResults);
+        setScore(saved.score || 0);
+        setTotalMarks(saved.totalMarks || 0);
+        setCurrentQuestionIndex(saved.currentQuestionIndex || 0);
+      } catch (e) {
+        console.error("Failed to load saved quiz state", e);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!quizData) return;
+    try {
+      const payload = { quizData, answers, showResults, score, totalMarks, currentQuestionIndex };
+      localStorage.setItem(storageKey, JSON.stringify(payload));
+    } catch (e) {
+      // ignore write errors
+    }
+  }, [quizData, answers, showResults, score, totalMarks, currentQuestionIndex, storageKey]);
 
   const generateQuiz = async () => {
     setGenerating(true);
@@ -184,7 +215,11 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
               }
             </p>
           </div>
-          <Button onClick={() => { setQuizData(null); setShowResults(false); }}>
+          <Button onClick={() => { 
+            setQuizData(null); 
+            setShowResults(false); 
+            try { localStorage.removeItem(storageKey); } catch {}
+          }}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
