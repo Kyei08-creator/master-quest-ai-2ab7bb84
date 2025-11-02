@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_submissions: {
+        Row: {
+          answers: Json
+          assignment_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          module_id: string
+          score: number | null
+          status: string
+          submitted_at: string
+          total_marks: number
+        }
+        Insert: {
+          answers: Json
+          assignment_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          module_id: string
+          score?: number | null
+          status?: string
+          submitted_at?: string
+          total_marks: number
+        }
+        Update: {
+          answers?: Json
+          assignment_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          module_id?: string
+          score?: number | null
+          status?: string
+          submitted_at?: string
+          total_marks?: number
+        }
+        Relationships: []
+      }
       assignments: {
         Row: {
           content: Json

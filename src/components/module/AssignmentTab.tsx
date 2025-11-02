@@ -44,6 +44,8 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   const [generating, setGenerating] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // Persist assignment state locally
   const storageKey = `assignmentState:${moduleId}`;
@@ -60,6 +62,7 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
         const saved = JSON.parse(raw);
         if (saved.answers) setAnswers(saved.answers);
         if (saved.currentSection !== undefined) setCurrentSection(saved.currentSection);
+        if (saved.submitted !== undefined) setSubmitted(saved.submitted);
       } catch (e) {
         console.error("Failed to load saved assignment state", e);
       }
@@ -71,12 +74,12 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   useEffect(() => {
     if (!assignment) return;
     try {
-      const payload = { answers, currentSection };
+      const payload = { answers, currentSection, submitted };
       localStorage.setItem(storageKey, JSON.stringify(payload));
     } catch (e) {
       // ignore write errors
     }
-  }, [answers, currentSection, assignment, storageKey]);
+  }, [answers, currentSection, submitted, assignment, storageKey]);
 
   const loadAssignment = async () => {
     const { data, error } = await supabase
@@ -121,6 +124,40 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
     setAnswers({ ...answers, [taskId]: value });
   };
 
+  const submitAssignment = async () => {
+    if (!assignment) return;
+    
+    setSubmitting(true);
+    try {
+      // Calculate total marks
+      const totalMarks = assignment.content.sections.reduce(
+        (sum, section) => sum + section.marks,
+        0
+      );
+
+      // Submit to database
+      const { error } = await supabase
+        .from("assignment_submissions")
+        .insert({
+          module_id: moduleId,
+          assignment_id: assignment.id,
+          answers,
+          total_marks: totalMarks,
+          status: "submitted",
+        });
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      toast.success("Assignment submitted successfully! Your instructor will review it.");
+    } catch (error: any) {
+      console.error("Assignment submission error:", error);
+      toast.error(error.message || "Failed to submit assignment");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (!assignment) {
     return (
       <Card className="shadow-card-custom">
@@ -152,6 +189,32 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   }
 
   const currentSectionData = assignment.content.sections[currentSection];
+
+  if (submitted) {
+    return (
+      <Card className="shadow-card-custom">
+        <CardHeader>
+          <CardTitle>Assignment Submitted</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center py-12">
+          <div className="mb-6">
+            <div className="text-6xl mb-4">✓</div>
+            <h3 className="text-2xl font-bold mb-2">Successfully Submitted!</h3>
+            <p className="text-muted-foreground mb-4">
+              Your assignment has been submitted for review. Check the Results tab to see your submission status.
+            </p>
+          </div>
+          <Button onClick={() => {
+            setSubmitted(false);
+            setAnswers({});
+            setCurrentSection(0);
+          }} variant="outline">
+            View Assignment Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-card-custom">
@@ -224,8 +287,12 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
               Next Section
             </Button>
           ) : (
-            <Button className="bg-green-600 hover:bg-green-700">
-              Submit Assignment
+            <Button 
+              onClick={submitAssignment}
+              disabled={submitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {submitting ? "Submitting..." : "Submit Assignment"}
             </Button>
           )}
         </div>

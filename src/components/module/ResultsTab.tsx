@@ -14,6 +14,15 @@ interface QuizAttempt {
   created_at: string;
 }
 
+interface AssignmentSubmission {
+  id: string;
+  submitted_at: string;
+  status: string;
+  score: number | null;
+  total_marks: number;
+  feedback: string | null;
+}
+
 interface ResultsTabProps {
   moduleId: string;
   module: any;
@@ -22,9 +31,11 @@ interface ResultsTabProps {
 
 const ResultsTab = ({ moduleId, module, onReload }: ResultsTabProps) => {
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
+  const [assignmentSubmissions, setAssignmentSubmissions] = useState<AssignmentSubmission[]>([]);
 
   useEffect(() => {
     loadAttempts();
+    loadAssignmentSubmissions();
   }, [moduleId]);
 
   const loadAttempts = async () => {
@@ -40,6 +51,21 @@ const ResultsTab = ({ moduleId, module, onReload }: ResultsTabProps) => {
     }
 
     setAttempts(data || []);
+  };
+
+  const loadAssignmentSubmissions = async () => {
+    const { data, error } = await supabase
+      .from("assignment_submissions")
+      .select("*")
+      .eq("module_id", moduleId)
+      .order("submitted_at", { ascending: false });
+
+    if (error) {
+      console.error("Failed to load assignment submissions:", error);
+      return;
+    }
+
+    setAssignmentSubmissions(data || []);
   };
 
   const downloadCertificate = () => {
@@ -78,7 +104,7 @@ const ResultsTab = ({ moduleId, module, onReload }: ResultsTabProps) => {
             </div>
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <div className="text-sm text-muted-foreground mb-1">Attempts</div>
-              <div className="text-2xl font-bold">{attempts.length}</div>
+              <div className="text-2xl font-bold">{attempts.length + assignmentSubmissions.length}</div>
             </div>
           </div>
           {module.status === "completed" && (
@@ -89,6 +115,54 @@ const ResultsTab = ({ moduleId, module, onReload }: ResultsTabProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Assignment Submissions */}
+      {assignmentSubmissions.length > 0 && (
+        <Card className="shadow-card-custom">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              Assignment Submissions
+            </CardTitle>
+            <CardDescription>Track your assignment submissions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {assignmentSubmissions.map((submission) => (
+                <div key={submission.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{new Date(submission.submitted_at).toLocaleString()}</span>
+                    </div>
+                    {submission.feedback && (
+                      <p className="text-sm text-muted-foreground mt-2">{submission.feedback}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-2 ml-4">
+                    <Badge variant={
+                      submission.status === "graded" 
+                        ? "default" 
+                        : submission.status === "submitted" 
+                          ? "secondary" 
+                          : "outline"
+                    }>
+                      {submission.status.toUpperCase()}
+                    </Badge>
+                    {submission.score !== null ? (
+                      <span className="text-sm font-medium">
+                        {submission.score}/{submission.total_marks} marks
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Awaiting grade</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Final Test Attempts */}
       {finalAttempts.length > 0 && (
@@ -157,12 +231,12 @@ const ResultsTab = ({ moduleId, module, onReload }: ResultsTabProps) => {
         </Card>
       )}
 
-      {attempts.length === 0 && (
+      {attempts.length === 0 && assignmentSubmissions.length === 0 && (
         <Card className="shadow-card-custom">
           <CardContent className="py-12 text-center">
             <Trophy className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              No attempts yet. Take a quiz or final test to see results here.
+              No attempts yet. Complete assignments, quizzes, or final tests to see results here.
             </p>
           </CardContent>
         </Card>
