@@ -146,11 +146,11 @@ const Module = () => {
             <AssignmentTab moduleId={id!} moduleTopic={module.topic} />
           </TabsContent>
 
-          <TabsContent value="quiz" forceMount>
+          <TabsContent value="quiz">
             <QuizTab moduleId={id!} moduleTopic={module.topic} quizType="quiz" onComplete={() => setActiveTab("results")} />
           </TabsContent>
 
-          <TabsContent value="final-test" forceMount>
+          <TabsContent value="final-test">
             <QuizTab moduleId={id!} moduleTopic={module.topic} quizType="final_test" onComplete={() => setActiveTab("results")} />
           </TabsContent>
 
