@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles, Plus, BookOpen, LogOut, Trophy, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ProgressStats } from "@/components/dashboard/ProgressStats";
+import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
 
 interface Module {
   id: string;
@@ -124,6 +126,13 @@ const Dashboard = () => {
           <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
           <p className="text-muted-foreground">Continue your journey to mastery</p>
         </div>
+
+        {modules.length > 0 && (
+          <>
+            <ProgressStats modules={modules} />
+            <LearningAnalytics modules={modules} />
+          </>
+        )}
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-12">
           <Card className="shadow-card-custom">
