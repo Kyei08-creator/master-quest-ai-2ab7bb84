@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Sparkles, FileText } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { AssignmentEmpty } from "./assignment/AssignmentEmpty";
+import { AssignmentSubmitted } from "./assignment/AssignmentSubmitted";
+import { AssignmentHeader } from "./assignment/AssignmentHeader";
+import { AssignmentSection } from "./assignment/AssignmentSection";
+import { AssignmentNavigation } from "./assignment/AssignmentNavigation";
 
 interface Task {
   id: string;
@@ -160,31 +162,11 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
 
   if (!assignment) {
     return (
-      <Card className="shadow-card-custom">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Module Assignment
-              </CardTitle>
-              <CardDescription>AI-generated practical tasks for {moduleTopic}</CardDescription>
-            </div>
-            <Button onClick={generateAssignment} disabled={generating}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              {generating ? "Generating..." : "Generate Assignment"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              No assignment yet. Click "Generate Assignment" to create one.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <AssignmentEmpty
+        moduleTopic={moduleTopic}
+        generating={generating}
+        onGenerate={generateAssignment}
+      />
     );
   }
 
@@ -192,110 +174,45 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
 
   if (submitted) {
     return (
-      <Card className="shadow-card-custom">
-        <CardHeader>
-          <CardTitle>Assignment Submitted</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center py-12">
-          <div className="mb-6">
-            <div className="text-6xl mb-4">✓</div>
-            <h3 className="text-2xl font-bold mb-2">Successfully Submitted!</h3>
-            <p className="text-muted-foreground mb-4">
-              Your assignment has been submitted for review. Check the Results tab to see your submission status.
-            </p>
-          </div>
-          <Button onClick={() => {
-            setSubmitted(false);
-            setAnswers({});
-            setCurrentSection(0);
-          }} variant="outline">
-            View Assignment Again
-          </Button>
-        </CardContent>
-      </Card>
+      <AssignmentSubmitted
+        onReset={() => {
+          setSubmitted(false);
+          setAnswers({});
+          setCurrentSection(0);
+        }}
+      />
     );
   }
 
   return (
     <Card className="shadow-card-custom">
-      <CardHeader>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex-1">
-            <CardTitle className="text-2xl mb-2">
-              Module: {moduleTopic} - Assignment
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mb-2">
-              **{assignment.content.title}** (Total Marks: {assignment.content.totalMarks})
-            </p>
-            <p className="text-sm">{assignment.content.description}</p>
-          </div>
-          <Button onClick={generateAssignment} disabled={generating} variant="outline">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Regenerate
-          </Button>
-        </div>
-        
-        <div className="flex gap-2 flex-wrap">
-          {assignment.content.sections.map((section, index) => (
-            <Button
-              key={section.id}
-              variant={currentSection === index ? "default" : "outline"}
-              onClick={() => setCurrentSection(index)}
-              size="sm"
-            >
-              Section {section.id}
-            </Button>
-          ))}
-        </div>
-      </CardHeader>
+      <AssignmentHeader
+        moduleTopic={moduleTopic}
+        title={assignment.content.title}
+        description={assignment.content.description}
+        totalMarks={assignment.content.totalMarks}
+        sections={assignment.content.sections}
+        currentSection={currentSection}
+        generating={generating}
+        onSectionChange={setCurrentSection}
+        onRegenerate={generateAssignment}
+      />
       
       <CardContent>
-        <div className="mb-6">
-          <h3 className="text-xl font-bold text-primary mb-2">
-            {currentSectionData.title} ({currentSectionData.marks} Marks)
-          </h3>
-          <p className="text-sm mb-4">{currentSectionData.description}</p>
-          
-          <div className="space-y-6">
-            {currentSectionData.tasks.map((task) => (
-              <div key={task.id} className="border border-primary/20 rounded-lg p-4 bg-card">
-                <p className="font-semibold mb-2">
-                  {task.id}. {task.question} ({task.marks} Marks)
-                </p>
-                <Textarea
-                  placeholder={`Enter your response for Task ${task.id} here...`}
-                  value={answers[task.id] || ""}
-                  onChange={(e) => handleAnswerChange(task.id, e.target.value)}
-                  className={task.type === "code" ? "font-mono bg-slate-900 text-slate-100 min-h-[200px]" : "min-h-[150px]"}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <AssignmentSection
+          section={currentSectionData}
+          answers={answers}
+          onAnswerChange={handleAnswerChange}
+        />
 
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
-            disabled={currentSection === 0}
-          >
-            Previous Section
-          </Button>
-          
-          {currentSection < assignment.content.sections.length - 1 ? (
-            <Button onClick={() => setCurrentSection(currentSection + 1)}>
-              Next Section
-            </Button>
-          ) : (
-            <Button 
-              onClick={submitAssignment}
-              disabled={submitting}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {submitting ? "Submitting..." : "Submit Assignment"}
-            </Button>
-          )}
-        </div>
+        <AssignmentNavigation
+          currentSection={currentSection}
+          totalSections={assignment.content.sections.length}
+          submitting={submitting}
+          onPrevious={() => setCurrentSection(Math.max(0, currentSection - 1))}
+          onNext={() => setCurrentSection(currentSection + 1)}
+          onSubmit={submitAssignment}
+        />
 
         <div className="mt-8 border-t pt-6">
           <h4 className="font-semibold mb-4">Resources for this Assignment</h4>
