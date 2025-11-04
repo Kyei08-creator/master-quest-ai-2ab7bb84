@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles, Plus, BookOpen, LogOut, Trophy, Clock, GraduationCap } from "lucide-react";
+import { Plus, BookOpen, Trophy, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProgressStats } from "@/components/dashboard/ProgressStats";
 import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
@@ -25,7 +25,6 @@ const Dashboard = () => {
   const [modules, setModules] = useState<Module[]>([]);
   const [newTopic, setNewTopic] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isInstructor, setIsInstructor] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -48,20 +47,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       loadModules();
-      checkInstructorRole();
     }
   }, [user]);
-
-  const checkInstructorRole = async () => {
-    if (!user) return;
-    
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-
-    setIsInstructor(roles?.some(r => r.role === "instructor" || r.role === "admin") || false);
-  };
 
   const loadModules = async () => {
     const { data, error } = await supabase
@@ -101,10 +88,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -119,29 +102,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary" />
-            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Quantum Leap
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {isInstructor && (
-              <Button variant="default" onClick={() => navigate("/grading")}>
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Grading
-              </Button>
-            )}
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>

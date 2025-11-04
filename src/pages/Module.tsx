@@ -89,29 +89,22 @@ const Module = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold">{module.topic}</h1>
-                <p className="text-sm text-muted-foreground">
-                  Status: {module.status.replace("_", " ").toUpperCase()}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold">{module.topic}</h1>
+              <p className="text-sm text-muted-foreground">
+                Status: {module.status.replace("_", " ").toUpperCase()}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleResetModule} disabled={loading}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset Module
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleResetModule} disabled={loading}>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset Module
+            </Button>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
