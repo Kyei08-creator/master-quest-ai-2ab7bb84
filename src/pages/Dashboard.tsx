@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles, Plus, BookOpen, LogOut, Trophy, Clock } from "lucide-react";
+import { Sparkles, Plus, BookOpen, LogOut, Trophy, Clock, GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProgressStats } from "@/components/dashboard/ProgressStats";
 import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [modules, setModules] = useState<Module[]>([]);
   const [newTopic, setNewTopic] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isInstructor, setIsInstructor] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -47,8 +48,20 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       loadModules();
+      checkInstructorRole();
     }
   }, [user]);
+
+  const checkInstructorRole = async () => {
+    if (!user) return;
+    
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    setIsInstructor(roles?.some(r => r.role === "instructor" || r.role === "admin") || false);
+  };
 
   const loadModules = async () => {
     const { data, error } = await supabase
@@ -114,10 +127,18 @@ const Dashboard = () => {
               Quantum Leap
             </h1>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            {isInstructor && (
+              <Button variant="default" onClick={() => navigate("/grading")}>
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Grading
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
