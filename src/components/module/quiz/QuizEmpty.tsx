@@ -10,17 +10,17 @@ interface QuizEmptyProps {
 
 export const QuizEmpty = ({ quizType, generating, onGenerate }: QuizEmptyProps) => {
   return (
-    <Card className="shadow-card-custom">
+    <Card className="shadow-card-custom animate-fade-in">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {quizType === "quiz" ? (
             <>
-              <Sparkles className="w-5 h-5 text-primary" />
+              <Sparkles className="w-5 h-5 text-primary animate-pulse" />
               Practice Quiz
             </>
           ) : (
             <>
-              <GraduationCap className="w-5 h-5 text-accent" />
+              <GraduationCap className="w-5 h-5 text-accent animate-pulse" />
               Final Test
             </>
           )}
@@ -35,7 +35,7 @@ export const QuizEmpty = ({ quizType, generating, onGenerate }: QuizEmptyProps) 
         <Button 
           onClick={onGenerate} 
           disabled={generating} 
-          className={quizType === "final_test" ? "w-full bg-red-600 hover:bg-red-700" : "w-full"}
+          className={`w-full transition-all duration-200 hover:scale-105 ${quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}`}
         >
           {generating ? "Generating..." : quizType === "quiz" ? "Generate Practice Quiz" : "Take Final Test"}
         </Button>

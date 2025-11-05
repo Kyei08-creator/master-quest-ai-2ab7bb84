@@ -32,19 +32,23 @@ export const QuizNavigation = ({
         variant="outline"
         onClick={onPrevious}
         disabled={currentQuestionIndex === 0}
+        className="transition-all duration-200 hover:scale-105"
       >
         Previous
       </Button>
       
       {!isLastPage ? (
-        <Button onClick={onNext}>
+        <Button 
+          onClick={onNext}
+          className="transition-all duration-200 hover:scale-105"
+        >
           Next
         </Button>
       ) : (
         <Button
           onClick={onSubmit}
           disabled={!canSubmit}
-          className={quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}
+          className={`transition-all duration-200 hover:scale-105 ${quizType === "final_test" ? "bg-red-600 hover:bg-red-700" : ""}`}
         >
           Submit {quizType === "quiz" ? "Quiz" : "Final Test"}
         </Button>

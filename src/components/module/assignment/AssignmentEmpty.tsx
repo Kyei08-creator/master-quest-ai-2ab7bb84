@@ -10,7 +10,7 @@ interface AssignmentEmptyProps {
 
 export const AssignmentEmpty = ({ moduleTopic, generating, onGenerate }: AssignmentEmptyProps) => {
   return (
-    <Card className="shadow-card-custom">
+    <Card className="shadow-card-custom animate-fade-in">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -20,7 +20,11 @@ export const AssignmentEmpty = ({ moduleTopic, generating, onGenerate }: Assignm
             </CardTitle>
             <CardDescription>AI-generated practical tasks for {moduleTopic}</CardDescription>
           </div>
-          <Button onClick={onGenerate} disabled={generating}>
+          <Button 
+            onClick={onGenerate} 
+            disabled={generating}
+            className="transition-all duration-200 hover:scale-105"
+          >
             <Sparkles className="w-4 h-4 mr-2" />
             {generating ? "Generating..." : "Generate Assignment"}
           </Button>
@@ -28,7 +32,7 @@ export const AssignmentEmpty = ({ moduleTopic, generating, onGenerate }: Assignm
       </CardHeader>
       <CardContent>
         <div className="text-center py-12">
-          <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
           <p className="text-muted-foreground">
             No assignment yet. Click "Generate Assignment" to create one.
           </p>

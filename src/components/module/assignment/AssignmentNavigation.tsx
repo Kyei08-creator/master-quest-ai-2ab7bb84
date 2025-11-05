@@ -25,19 +25,23 @@ export const AssignmentNavigation = ({
         variant="outline"
         onClick={onPrevious}
         disabled={currentSection === 0}
+        className="transition-all duration-200 hover:scale-105"
       >
         Previous Section
       </Button>
       
       {!isLastSection ? (
-        <Button onClick={onNext}>
+        <Button 
+          onClick={onNext}
+          className="transition-all duration-200 hover:scale-105"
+        >
           Next Section
         </Button>
       ) : (
         <Button 
           onClick={onSubmit}
           disabled={submitting}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700 transition-all duration-200 hover:scale-105"
         >
           {submitting ? "Submitting..." : "Submit Assignment"}
         </Button>

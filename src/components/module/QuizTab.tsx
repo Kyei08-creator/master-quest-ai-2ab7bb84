@@ -211,7 +211,7 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   const currentQuestions = quizData.questions.slice(startIndex, endIndex);
 
   return (
-    <Card className="shadow-card-custom">
+    <Card className="shadow-card-custom animate-fade-in">
       <QuizHeader
         moduleTopic={moduleTopic}
         quizType={quizType}
@@ -225,25 +225,27 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
       
       <CardContent className="space-y-6">
         {lastAutoSave && (
-          <div className="mb-4 text-xs text-muted-foreground text-right">
+          <div className="mb-4 text-xs text-muted-foreground text-right animate-fade-in">
             Last saved: {lastAutoSave.toLocaleTimeString()}
           </div>
         )}
         
         <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
         
-        {currentQuestions.map((q, localIndex) => {
-          const qIndex = startIndex + localIndex;
-          return (
-            <QuizQuestion
-              key={qIndex}
-              question={q}
-              questionIndex={qIndex}
-              answer={answers[qIndex]}
-              onAnswerChange={(value) => setAnswers({ ...answers, [qIndex]: value })}
-            />
-          );
-        })}
+        <div key={currentQuestionIndex} className="space-y-6 animate-fade-in">
+          {currentQuestions.map((q, localIndex) => {
+            const qIndex = startIndex + localIndex;
+            return (
+              <QuizQuestion
+                key={qIndex}
+                question={q}
+                questionIndex={qIndex}
+                answer={answers[qIndex]}
+                onAnswerChange={(value) => setAnswers({ ...answers, [qIndex]: value })}
+              />
+            );
+          })}
+        </div>
 
         <QuizNavigation
           currentQuestionIndex={currentQuestionIndex}

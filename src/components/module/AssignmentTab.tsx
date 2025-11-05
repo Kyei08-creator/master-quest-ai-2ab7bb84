@@ -204,7 +204,7 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   }
 
   return (
-    <Card className="shadow-card-custom">
+    <Card className="shadow-card-custom animate-fade-in">
       <AssignmentHeader
         moduleTopic={moduleTopic}
         title={assignment.content.title}
@@ -219,16 +219,18 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
       
       <CardContent>
         {lastAutoSave && (
-          <div className="mb-4 text-xs text-muted-foreground text-right">
+          <div className="mb-4 text-xs text-muted-foreground text-right animate-fade-in">
             Last saved: {lastAutoSave.toLocaleTimeString()}
           </div>
         )}
         
-        <AssignmentSection
-          section={currentSectionData}
-          answers={answers}
-          onAnswerChange={handleAnswerChange}
-        />
+        <div key={currentSection} className="animate-fade-in">
+          <AssignmentSection
+            section={currentSectionData}
+            answers={answers}
+            onAnswerChange={handleAnswerChange}
+          />
+        </div>
 
         <AssignmentNavigation
           currentSection={currentSection}
