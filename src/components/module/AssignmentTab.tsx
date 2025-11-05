@@ -48,6 +48,7 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
 
   // Persist assignment state locally
   const storageKey = `assignmentState:${moduleId}`;
@@ -82,6 +83,24 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
       // ignore write errors
     }
   }, [answers, currentSection, submitted, assignment, storageKey]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!assignment || submitted) return;
+
+    const autoSaveInterval = setInterval(() => {
+      try {
+        const payload = { answers, currentSection, submitted };
+        localStorage.setItem(storageKey, JSON.stringify(payload));
+        setLastAutoSave(new Date());
+        toast.success("Progress auto-saved", { duration: 2000 });
+      } catch (e) {
+        console.error("Auto-save failed", e);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [assignment, answers, currentSection, submitted, storageKey]);
 
   const loadAssignment = async () => {
     const { data, error } = await supabase
@@ -199,6 +218,12 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
       />
       
       <CardContent>
+        {lastAutoSave && (
+          <div className="mb-4 text-xs text-muted-foreground text-right">
+            Last saved: {lastAutoSave.toLocaleTimeString()}
+          </div>
+        )}
+        
         <AssignmentSection
           section={currentSectionData}
           answers={answers}

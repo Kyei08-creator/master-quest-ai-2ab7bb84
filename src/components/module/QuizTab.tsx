@@ -46,6 +46,7 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   const [score, setScore] = useState(0);
   const [totalMarks, setTotalMarks] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
 
   // Persist quiz state locally so it survives navigation away from the module
   const storageKey = `quizState:${moduleId}:${quizType}`;
@@ -76,6 +77,24 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
     } catch (e) {
       // ignore write errors
     }
+  }, [quizData, answers, showResults, score, totalMarks, currentQuestionIndex, storageKey]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!quizData || showResults) return;
+
+    const autoSaveInterval = setInterval(() => {
+      try {
+        const payload = { quizData, answers, showResults, score, totalMarks, currentQuestionIndex };
+        localStorage.setItem(storageKey, JSON.stringify(payload));
+        setLastAutoSave(new Date());
+        toast.success("Progress auto-saved", { duration: 2000 });
+      } catch (e) {
+        console.error("Auto-save failed", e);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
   }, [quizData, answers, showResults, score, totalMarks, currentQuestionIndex, storageKey]);
 
   const generateQuiz = async () => {
@@ -205,6 +224,12 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
       />
       
       <CardContent className="space-y-6">
+        {lastAutoSave && (
+          <div className="mb-4 text-xs text-muted-foreground text-right">
+            Last saved: {lastAutoSave.toLocaleTimeString()}
+          </div>
+        )}
+        
         <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
         
         {currentQuestions.map((q, localIndex) => {
