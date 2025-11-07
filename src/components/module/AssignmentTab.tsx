@@ -9,6 +9,7 @@ import { AssignmentHeader } from "./assignment/AssignmentHeader";
 import { AssignmentSection } from "./assignment/AssignmentSection";
 import { AssignmentNavigation } from "./assignment/AssignmentNavigation";
 import { SyncIndicator } from "./SyncIndicator";
+import { ProgressIndicator } from "./ProgressIndicator";
 
 interface Task {
   id: string;
@@ -285,7 +286,14 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
           />
         </div>
         
-        <div key={currentSection} className="animate-fade-in">
+        <ProgressIndicator
+          current={currentSection + 1}
+          total={assignment.content.sections.length}
+          label="Assignment Progress"
+          variant="sections"
+        />
+        
+        <div key={currentSection} className="animate-fade-in mt-6">
           <AssignmentSection
             section={currentSectionData}
             answers={answers}

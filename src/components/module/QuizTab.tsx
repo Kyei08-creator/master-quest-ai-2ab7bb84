@@ -9,6 +9,7 @@ import { QuizHeader } from "./quiz/QuizHeader";
 import { QuizQuestion } from "./quiz/QuizQuestion";
 import { QuizNavigation } from "./quiz/QuizNavigation";
 import { SyncIndicator } from "./SyncIndicator";
+import { ProgressIndicator } from "./ProgressIndicator";
 
 interface Question {
   question: string;
@@ -272,6 +273,13 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
             nextRetryTime={getNextRetryTime()}
           />
         </div>
+        
+        <ProgressIndicator
+          current={Object.keys(answers).length}
+          total={totalQuestions}
+          label="Questions Answered"
+          variant="questions"
+        />
         
         <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
         
