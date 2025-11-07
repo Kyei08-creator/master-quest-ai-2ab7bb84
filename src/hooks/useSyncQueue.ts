@@ -133,6 +133,18 @@ export const useSyncQueue = () => {
           if (serverTimestamp > localTimestamp) {
             console.log("Skipping sync - server has newer version");
             removeFromQueue(item.id);
+            
+            // Notify user about the conflict
+            const tabName = item.draftType === 'quiz' 
+              ? `${item.quizType || 'quiz'}` 
+              : item.draftType;
+            
+            toast.info("🔄 Conflict Resolved", {
+              description: `Your local changes to ${tabName} were skipped. A newer version from another device is already saved.`,
+              duration: 6000,
+            });
+            
+            successCount++; // Count as success since we handled it
             continue;
           }
         }

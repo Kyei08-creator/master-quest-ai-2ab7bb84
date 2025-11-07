@@ -14,6 +14,7 @@ interface BatchSyncContextType {
   queueSize: number;
   nextRetryTime: Date | null;
   registeredCount: number;
+  onConflict?: (tabName: string) => void;
 }
 
 const BatchSyncContext = createContext<BatchSyncContextType | undefined>(undefined);
@@ -29,10 +30,11 @@ export const useBatchSyncContext = () => {
 interface BatchSyncProviderProps {
   children: ReactNode;
   moduleId: string;
+  onConflict?: (tabName: string) => void;
 }
 
-export const BatchSyncProvider = ({ children, moduleId }: BatchSyncProviderProps) => {
-  const batchSync = useBatchSync(moduleId);
+export const BatchSyncProvider = ({ children, moduleId, onConflict }: BatchSyncProviderProps) => {
+  const batchSync = useBatchSync(moduleId, onConflict);
 
   return (
     <BatchSyncContext.Provider value={batchSync}>

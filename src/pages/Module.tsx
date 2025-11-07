@@ -19,6 +19,7 @@ import { ModulePresence } from "@/components/module/ModulePresence";
 import { BatchSyncProvider, useBatchSyncContext } from "@/contexts/BatchSyncContext";
 import { BatchSyncIndicator } from "@/components/module/BatchSyncIndicator";
 import { UnsavedChangesDialog } from "@/components/module/UnsavedChangesDialog";
+import { ConflictAlert } from "@/components/module/ConflictAlert";
 
 interface Module {
   id: string;
@@ -37,6 +38,7 @@ const Module = () => {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
+  const [conflictedTabs, setConflictedTabs] = useState<string[]>([]);
   const { presenceUsers, onlineCount } = useModulePresence(id);
 
   useEffect(() => {
@@ -46,6 +48,25 @@ const Module = () => {
       loadMemberCount();
     }
   }, [id]);
+
+  const handleConflict = (tabName: string) => {
+    setConflictedTabs((prev) => {
+      if (prev.includes(tabName)) return prev;
+      return [...prev, tabName];
+    });
+  };
+
+  const handleDismissConflicts = () => {
+    setConflictedTabs([]);
+  };
+
+  const handleRefreshModule = () => {
+    setConflictedTabs([]);
+    loadModule();
+    toast.success("Module data refreshed", {
+      description: "Latest version loaded from server",
+    });
+  };
 
   const handleShareToken = async () => {
     const shareToken = searchParams.get('share');
@@ -283,13 +304,16 @@ const Module = () => {
       </div>
 
       <main className="container mx-auto px-4 py-8">
-        <BatchSyncProvider moduleId={id!}>
+        <BatchSyncProvider moduleId={id!} onConflict={handleConflict}>
           <ModuleContent 
             module={module} 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             id={id!}
             loadModule={loadModule}
+            conflictedTabs={conflictedTabs}
+            onDismissConflicts={handleDismissConflicts}
+            onRefreshModule={handleRefreshModule}
           />
         </BatchSyncProvider>
       </main>
@@ -312,13 +336,19 @@ const ModuleContent = ({
   activeTab, 
   setActiveTab, 
   id,
-  loadModule
+  loadModule,
+  conflictedTabs,
+  onDismissConflicts,
+  onRefreshModule
 }: { 
   module: Module; 
   activeTab: string; 
   setActiveTab: (tab: string) => void;
   id: string;
   loadModule: () => void;
+  conflictedTabs: string[];
+  onDismissConflicts: () => void;
+  onRefreshModule: () => void;
 }) => {
   const { syncing, lastBatchSync, syncAll, queueSize, nextRetryTime, registeredCount } = useBatchSyncContext();
   const previousTabRef = useRef(activeTab);
@@ -410,6 +440,12 @@ const ModuleContent = ({
         onSaveAndContinue={handleSaveAndContinue}
         onContinueWithoutSaving={handleContinueWithoutSaving}
         registeredCount={registeredCount}
+      />
+
+      <ConflictAlert
+        conflictedTabs={conflictedTabs}
+        onRefresh={onRefreshModule}
+        onDismiss={onDismissConflicts}
       />
 
       <BatchSyncIndicator

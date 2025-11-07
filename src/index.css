@@ -31,6 +31,9 @@ All colors MUST be HSL.
     --success: 142 76% 48%;
     --success-foreground: 0 0% 100%;
     
+    --info: 200 95% 45%;
+    --info-foreground: 0 0% 100%;
+    
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
@@ -81,6 +84,7 @@ All colors MUST be HSL.
     --secondary-glow: 185 80% 70%;
 
     --success: 142 76% 48%;
+    --info: 200 95% 45%;
     --warning: 38 92% 50%;
 
     --muted: 240 10% 15%;

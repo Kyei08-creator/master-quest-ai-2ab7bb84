@@ -9,7 +9,7 @@ interface BatchSyncItem {
   getData: () => any;
 }
 
-export const useBatchSync = (moduleId: string) => {
+export const useBatchSync = (moduleId: string, onConflict?: (tabName: string) => void) => {
   const [syncing, setSyncing] = useState(false);
   const [lastBatchSync, setLastBatchSync] = useState<Date | null>(null);
   const { addToQueue, queueSize, getNextRetryTime, processQueue } = useSyncQueue();
@@ -65,6 +65,30 @@ export const useBatchSync = (moduleId: string) => {
 
           if (fetchError && fetchError.code !== 'PGRST116') {
             throw fetchError;
+          }
+
+          // If there's a newer version on server, notify and skip
+          if (existingData?.updated_at) {
+            const serverTimestamp = new Date(existingData.updated_at).getTime();
+            if (serverTimestamp > timestamp - 5000) { // 5 second grace period
+              const tabName = item.draftType === 'quiz' 
+                ? `${item.quizType || 'quiz'}` 
+                : item.draftType;
+              
+              toast.info("🔄 Conflict Detected", {
+                description: `${tabName} has a newer version from another device. Your changes were not saved to prevent conflicts.`,
+                duration: 6000,
+              });
+              
+              // Notify parent component about conflict
+              if (onConflict) {
+                onConflict(tabName);
+              }
+              
+              // Still count as handled
+              successCount++;
+              return;
+            }
           }
 
           // Perform the upsert
@@ -142,5 +166,6 @@ export const useBatchSync = (moduleId: string) => {
     queueSize,
     nextRetryTime: getNextRetryTime(),
     registeredCount: registeredItems.size,
+    onConflict,
   };
 };
