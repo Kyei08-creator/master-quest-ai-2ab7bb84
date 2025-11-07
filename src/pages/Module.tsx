@@ -99,17 +99,27 @@ const Module = () => {
                 Status: {module.status.replace("_", " ").toUpperCase()}
               </p>
             </div>
-            <Button variant="outline" onClick={handleResetModule} disabled={loading}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset Module
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant={activeTab === "discussions" ? "default" : "outline"} 
+                onClick={() => setActiveTab("discussions")}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Discuss</span>
+              </Button>
+              <Button variant="outline" onClick={handleResetModule} disabled={loading}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Reset Module</span>
+                <span className="sm:hidden">Reset</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-8 h-auto gap-1 p-1">
+          <TabsList className="grid w-full grid-cols-5 mb-8 h-auto gap-1 p-1">
             <TabsTrigger value="resources" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <BookOpen className="w-4 h-4 sm:mr-0" />
               <span className="text-xs sm:text-sm">Resources</span>
@@ -117,10 +127,6 @@ const Module = () => {
             <TabsTrigger value="assignment" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <FileText className="w-4 h-4 sm:mr-0" />
               <span className="text-xs sm:text-sm">Assignment</span>
-            </TabsTrigger>
-            <TabsTrigger value="discussions" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
-              <MessageCircle className="w-4 h-4 sm:mr-0" />
-              <span className="text-xs sm:text-sm">Discuss</span>
             </TabsTrigger>
             <TabsTrigger value="quiz" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <Sparkles className="w-4 h-4 sm:mr-0" />
