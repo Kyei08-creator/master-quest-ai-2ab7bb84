@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   User,
   Shield,
@@ -35,6 +36,7 @@ interface Profile {
   id: string;
   full_name: string | null;
   created_at: string;
+  profile_role: 'learner' | 'expert' | 'teacher';
 }
 
 interface Stats {
@@ -60,6 +62,7 @@ const Profile = () => {
     averageScore: 0,
   });
   const [fullName, setFullName] = useState("");
+  const [profileRole, setProfileRole] = useState<'learner' | 'expert' | 'teacher'>('learner');
   const [validationError, setValidationError] = useState("");
 
   useEffect(() => {
@@ -85,8 +88,9 @@ const Profile = () => {
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+      setProfile(profileData as Profile);
       setFullName(profileData.full_name || "");
+      setProfileRole((profileData.profile_role || 'learner') as 'learner' | 'expert' | 'teacher');
 
       // Load roles
       const { data: rolesData } = await supabase
@@ -179,12 +183,15 @@ const Profile = () => {
 
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: result.data.full_name })
+        .update({ 
+          full_name: result.data.full_name,
+          profile_role: profileRole 
+        })
         .eq("id", user.id);
 
       if (error) throw error;
 
-      setProfile((prev) => (prev ? { ...prev, full_name: result.data.full_name } : null));
+      setProfile((prev) => (prev ? { ...prev, full_name: result.data.full_name, profile_role: profileRole } : null));
       setEditing(false);
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -197,6 +204,7 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFullName(profile?.full_name || "");
+    setProfileRole(profile?.profile_role || 'learner');
     setValidationError("");
     setEditing(false);
   };
@@ -311,7 +319,7 @@ const Profile = () => {
             <div>
               <Label className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                Roles
+                Security Roles (Read-only)
               </Label>
               <div className="flex gap-2 mt-2 flex-wrap">
                 {roles.map((role) => (
@@ -320,6 +328,42 @@ const Profile = () => {
                   </Badge>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Security roles are managed by administrators
+              </p>
+            </div>
+
+            <div>
+              <Label>Profile Role</Label>
+              {editing ? (
+                <RadioGroup 
+                  value={profileRole} 
+                  onValueChange={(value) => setProfileRole(value as 'learner' | 'expert' | 'teacher')}
+                  className="mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="learner" id="learner" />
+                    <Label htmlFor="learner" className="font-normal cursor-pointer">Learner - I'm here to learn</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="expert" id="expert" />
+                    <Label htmlFor="expert" className="font-normal cursor-pointer">Expert - I have specialized knowledge</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="teacher" id="teacher" />
+                    <Label htmlFor="teacher" className="font-normal cursor-pointer">Teacher - I teach and create content</Label>
+                  </div>
+                </RadioGroup>
+              ) : (
+                <div className="mt-2">
+                  <Badge variant="outline" className="capitalize">
+                    {profileRole}
+                  </Badge>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                This helps others know your expertise level
+              </p>
             </div>
           </div>
         </div>
