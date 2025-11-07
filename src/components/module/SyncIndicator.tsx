@@ -1,5 +1,6 @@
-import { Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { Cloud, CloudOff, RefreshCw, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SyncIndicatorProps {
   syncing: boolean;
@@ -22,45 +23,47 @@ export const SyncIndicator = ({ syncing, lastAutoSave, onSync, disabled, queueSi
     return `retry in ${minutes}m`;
   };
   return (
-    <div className="flex items-center gap-3">
-      {lastAutoSave && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
-          <Cloud className={cn(
-            "w-4 h-4 transition-all duration-300",
-            syncing && "animate-pulse text-primary"
-          )} />
-          <span>Last saved: {lastAutoSave.toLocaleTimeString()}</span>
-          {queueSize > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
-                {queueSize} pending
-              </span>
-              {nextRetryTime && (
-                <span className="text-muted-foreground/70 animate-pulse">
-                  • {formatRetryTime(nextRetryTime)}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+    <div className="space-y-3">
+      {queueSize > 0 && (
+        <Alert variant="default" className="border-warning/50 bg-warning/5">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertTitle className="text-warning">Pending Changes</AlertTitle>
+          <AlertDescription className="text-sm">
+            You have {queueSize} unsaved change{queueSize > 1 ? 's' : ''}.
+            {nextRetryTime && ` Retrying ${formatRetryTime(nextRetryTime)}.`}
+            {!navigator.onLine && " You're offline - changes will sync when reconnected."}
+          </AlertDescription>
+        </Alert>
       )}
       
-      <button
-        onClick={onSync}
-        disabled={disabled || syncing}
-        className={cn(
-          "flex items-center gap-2 text-xs px-3 py-1.5 rounded-md transition-all duration-300",
-          "bg-primary/10 hover:bg-primary/20 text-primary",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
-          syncing && "bg-primary/20"
+      <div className="flex items-center gap-3">
+        {lastAutoSave && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
+            <Cloud className={cn(
+              "w-4 h-4 transition-all duration-300",
+              syncing && "animate-pulse text-primary"
+            )} />
+            <span>Last saved: {lastAutoSave.toLocaleTimeString()}</span>
+          </div>
         )}
-      >
-        <RefreshCw className={cn(
-          "w-3.5 h-3.5 transition-transform duration-500",
-          syncing && "animate-spin"
-        )} />
-        <span>{syncing ? "Saving..." : "Save"}</span>
-      </button>
+        
+        <button
+          onClick={onSync}
+          disabled={disabled || syncing}
+          className={cn(
+            "flex items-center gap-2 text-xs px-3 py-1.5 rounded-md transition-all duration-300",
+            "bg-primary/10 hover:bg-primary/20 text-primary",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            syncing && "bg-primary/20"
+          )}
+        >
+          <RefreshCw className={cn(
+            "w-3.5 h-3.5 transition-transform duration-500",
+            syncing && "animate-spin"
+          )} />
+          <span>{syncing ? "Saving..." : "Save"}</span>
+        </button>
+      </div>
     </div>
   );
 };

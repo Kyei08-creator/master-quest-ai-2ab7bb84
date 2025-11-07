@@ -166,7 +166,17 @@ const Module = () => {
   if (!module) {
     return (
       <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-warning rounded-full animate-pulse" />
+              Loading Module Data
+            </CardTitle>
+            <CardDescription>
+              Please wait while we load your module content...
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
