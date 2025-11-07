@@ -7,6 +7,7 @@ import { QuizResults } from "./quiz/QuizResults";
 import { QuizHeader } from "./quiz/QuizHeader";
 import { QuizQuestion } from "./quiz/QuizQuestion";
 import { QuizNavigation } from "./quiz/QuizNavigation";
+import { SyncIndicator } from "./SyncIndicator";
 
 interface Question {
   question: string;
@@ -249,19 +250,12 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
       />
       
       <CardContent className="space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          {lastAutoSave && (
-            <div className="text-xs text-muted-foreground animate-fade-in">
-              Last synced: {lastAutoSave.toLocaleTimeString()}
-            </div>
-          )}
-          <button
-            onClick={syncToCloud}
-            disabled={syncing}
-            className="ml-auto text-xs px-3 py-1 rounded bg-primary/10 hover:bg-primary/20 text-primary disabled:opacity-50 transition-colors"
-          >
-            {syncing ? "Syncing..." : "💾 Sync Progress"}
-          </button>
+        <div className="flex justify-end items-center mb-4">
+          <SyncIndicator
+            syncing={syncing}
+            lastAutoSave={lastAutoSave}
+            onSync={syncToCloud}
+          />
         </div>
         
         <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
