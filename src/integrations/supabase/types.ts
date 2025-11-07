@@ -646,7 +646,7 @@ export type Database = {
         Returns: boolean
       }
       is_module_member: {
-        Args: { module_id: string; user_id: string }
+        Args: { _module_id: string; _user_id: string }
         Returns: boolean
       }
     }
