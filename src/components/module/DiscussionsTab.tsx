@@ -5,12 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MessageCircle,
   Plus,
   ThumbsUp,
   CheckCircle,
   Clock,
+  TrendingUp,
+  Star,
+  Calendar,
 } from "lucide-react";
 import { DiscussionCard } from "./discussion/DiscussionCard";
 import { NewDiscussionDialog } from "./discussion/NewDiscussionDialog";
@@ -44,6 +48,7 @@ export const DiscussionsTab = ({ moduleId }: DiscussionsTabProps) => {
   const [selectedDiscussion, setSelectedDiscussion] = useState<string | null>(
     null
   );
+  const [sortBy, setSortBy] = useState<"hot" | "top" | "new" | "resolved">("hot");
 
   useEffect(() => {
     loadDiscussions();
@@ -113,6 +118,48 @@ export const DiscussionsTab = ({ moduleId }: DiscussionsTabProps) => {
     }
   };
 
+  const getSortedDiscussions = () => {
+    let sorted = [...discussions];
+    
+    switch (sortBy) {
+      case "hot":
+        // Hot: Recent activity + upvotes (decay factor for time)
+        sorted.sort((a, b) => {
+          const now = Date.now();
+          const aAge = (now - new Date(a.created_at).getTime()) / (1000 * 60 * 60); // hours
+          const bAge = (now - new Date(b.created_at).getTime()) / (1000 * 60 * 60);
+          const aScore = (a.upvotes + a._count.replies * 0.5) / Math.pow(aAge + 2, 1.5);
+          const bScore = (b.upvotes + b._count.replies * 0.5) / Math.pow(bAge + 2, 1.5);
+          return bScore - aScore;
+        });
+        break;
+      case "top":
+        // Top: Most upvotes
+        sorted.sort((a, b) => b.upvotes - a.upvotes);
+        break;
+      case "new":
+        // New: Most recent
+        sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "resolved":
+        // Resolved first, then by hot
+        sorted.sort((a, b) => {
+          if (a.is_resolved !== b.is_resolved) {
+            return a.is_resolved ? -1 : 1;
+          }
+          const now = Date.now();
+          const aAge = (now - new Date(a.created_at).getTime()) / (1000 * 60 * 60);
+          const bAge = (now - new Date(b.created_at).getTime()) / (1000 * 60 * 60);
+          const aScore = (a.upvotes + a._count.replies * 0.5) / Math.pow(aAge + 2, 1.5);
+          const bScore = (b.upvotes + b._count.replies * 0.5) / Math.pow(bAge + 2, 1.5);
+          return bScore - aScore;
+        });
+        break;
+    }
+    
+    return sorted;
+  };
+
   const handleUpvote = async (discussionId: string) => {
     try {
       const {
@@ -174,15 +221,38 @@ export const DiscussionsTab = ({ moduleId }: DiscussionsTabProps) => {
         </Button>
       </div>
 
-      <div className="flex gap-2">
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <MessageCircle className="w-3 h-3" />
-          {discussions.length} discussions
-        </Badge>
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <CheckCircle className="w-3 h-3" />
-          {discussions.filter((d) => d.is_resolved).length} resolved
-        </Badge>
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex gap-2">
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <MessageCircle className="w-3 h-3" />
+            {discussions.length} discussions
+          </Badge>
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            {discussions.filter((d) => d.is_resolved).length} resolved
+          </Badge>
+        </div>
+
+        <Tabs value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)} className="w-full sm:w-auto">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="hot" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TrendingUp className="w-3 h-3" />
+              <span className="hidden sm:inline">Hot</span>
+            </TabsTrigger>
+            <TabsTrigger value="top" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Star className="w-3 h-3" />
+              <span className="hidden sm:inline">Top</span>
+            </TabsTrigger>
+            <TabsTrigger value="new" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Calendar className="w-3 h-3" />
+              <span className="hidden sm:inline">New</span>
+            </TabsTrigger>
+            <TabsTrigger value="resolved" className="flex items-center gap-1 text-xs sm:text-sm">
+              <CheckCircle className="w-3 h-3" />
+              <span className="hidden sm:inline">Solved</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <Separator />
@@ -201,7 +271,7 @@ export const DiscussionsTab = ({ moduleId }: DiscussionsTabProps) => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {discussions.map((discussion) => (
+          {getSortedDiscussions().map((discussion) => (
             <DiscussionCard
               key={discussion.id}
               discussion={discussion}
