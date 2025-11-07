@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw, MessageCircle } from "lucide-react";
+import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw, MessageCircle, Share2, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ResourcesTab from "@/components/module/ResourcesTab";
 import AssignmentTab from "@/components/module/AssignmentTab";
 import QuizTab from "@/components/module/QuizTab";
 import ResultsTab from "@/components/module/ResultsTab";
 import { DiscussionsTab } from "@/components/module/DiscussionsTab";
+import { ShareModuleDialog } from "@/components/module/ShareModuleDialog";
 
 interface Module {
   id: string;
@@ -22,13 +23,84 @@ interface Module {
 const Module = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [module, setModule] = useState<Module | null>(null);
   const [activeTab, setActiveTab] = useState("resources");
   const [loading, setLoading] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [memberCount, setMemberCount] = useState(0);
 
   useEffect(() => {
-    loadModule();
+    if (id) {
+      handleShareToken();
+      loadModule();
+      loadMemberCount();
+    }
   }, [id]);
+
+  const handleShareToken = async () => {
+    const shareToken = searchParams.get('share');
+    if (!shareToken) return;
+
+    try {
+      const { data: share } = await supabase
+        .from('module_shares')
+        .select('module_id')
+        .eq('share_token', shareToken)
+        .eq('is_active', true)
+        .single();
+
+      if (!share) {
+        toast.error('Invalid or expired share link');
+        return;
+      }
+
+      // Check if already a member
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        toast.error('Please sign in to join this module');
+        return;
+      }
+
+      const { data: existingMember } = await supabase
+        .from('module_members')
+        .select('id')
+        .eq('module_id', share.module_id)
+        .eq('user_id', user.user.id)
+        .maybeSingle();
+
+      if (!existingMember) {
+        // Add as member
+        const { error } = await supabase
+          .from('module_members')
+          .insert({
+            module_id: share.module_id,
+            user_id: user.user.id
+          });
+
+        if (error) throw error;
+        toast.success('Successfully joined the module!');
+        loadMemberCount();
+      }
+
+      // Remove share param from URL
+      navigate(`/module/${id}`, { replace: true });
+    } catch (error) {
+      console.error('Error handling share token:', error);
+      toast.error('Failed to join module');
+    }
+  };
+
+  const loadMemberCount = async () => {
+    if (!id) return;
+    const { count } = await supabase
+      .from('module_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('module_id', id);
+    
+    setMemberCount(count || 0);
+  };
 
   const loadModule = async () => {
     if (!id) return;
@@ -46,6 +118,12 @@ const Module = () => {
     }
 
     setModule(data);
+    
+    // Check if current user is owner
+    const { data: user } = await supabase.auth.getUser();
+    if (user.user) {
+      setIsOwner(data.user_id === user.user.id);
+    }
   };
 
   const handleResetModule = async () => {
@@ -100,6 +178,21 @@ const Module = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {memberCount > 0 && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mr-2">
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">{memberCount + 1}</span>
+                </div>
+              )}
+              {isOwner && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShareDialogOpen(true)}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+              )}
               <Button 
                 variant={activeTab === "discussions" ? "default" : "outline"} 
                 onClick={() => setActiveTab("discussions")}
@@ -107,11 +200,13 @@ const Module = () => {
                 <MessageCircle className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Discuss</span>
               </Button>
-              <Button variant="outline" onClick={handleResetModule} disabled={loading}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Reset Module</span>
-                <span className="sm:hidden">Reset</span>
-              </Button>
+              {isOwner && (
+                <Button variant="outline" onClick={handleResetModule} disabled={loading}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Reset Module</span>
+                  <span className="sm:hidden">Reset</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -169,6 +264,15 @@ const Module = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {isOwner && (
+        <ShareModuleDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          moduleId={id!}
+          moduleTopic={module?.topic || ''}
+        />
+      )}
     </div>
   );
 };
