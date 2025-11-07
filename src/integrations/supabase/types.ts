@@ -59,6 +59,13 @@ export type Database = {
             referencedRelation: "assignments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "alternative_questions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "content_quality_metrics"
+            referencedColumns: ["content_id"]
+          },
         ]
       }
       assignment_submissions: {
@@ -102,31 +109,40 @@ export type Database = {
       }
       assignments: {
         Row: {
+          average_rating: number | null
           content: Json
           content_status: Database["public"]["Enums"]["content_status"]
           created_at: string | null
           id: string
+          last_rated_at: string | null
           module_id: string
           reviewed_at: string | null
           reviewed_by: string | null
+          total_ratings: number | null
         }
         Insert: {
+          average_rating?: number | null
           content: Json
           content_status?: Database["public"]["Enums"]["content_status"]
           created_at?: string | null
           id?: string
+          last_rated_at?: string | null
           module_id: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          total_ratings?: number | null
         }
         Update: {
+          average_rating?: number | null
           content?: Json
           content_status?: Database["public"]["Enums"]["content_status"]
           created_at?: string | null
           id?: string
+          last_rated_at?: string | null
           module_id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          total_ratings?: number | null
         }
         Relationships: [
           {
@@ -527,7 +543,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      content_quality_metrics: {
+        Row: {
+          approval_count: number | null
+          average_rating: number | null
+          content_id: string | null
+          content_status: Database["public"]["Enums"]["content_status"] | null
+          content_type: string | null
+          created_at: string | null
+          flag_count: number | null
+          last_rated_at: string | null
+          module_id: string | null
+          module_topic: string | null
+          recent_feedback: string | null
+          review_count: number | null
+          total_ratings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
