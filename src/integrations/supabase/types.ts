@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      alternative_questions: {
+        Row: {
+          assignment_id: string | null
+          created_at: string
+          id: string
+          original_question_index: number
+          reasoning: string | null
+          status: Database["public"]["Enums"]["content_status"]
+          suggested_by: string
+          suggested_question: string
+          updated_at: string
+          upvotes: number
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          original_question_index: number
+          reasoning?: string | null
+          status?: Database["public"]["Enums"]["content_status"]
+          suggested_by: string
+          suggested_question: string
+          updated_at?: string
+          upvotes?: number
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          original_question_index?: number
+          reasoning?: string | null
+          status?: Database["public"]["Enums"]["content_status"]
+          suggested_by?: string
+          suggested_question?: string
+          updated_at?: string
+          upvotes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alternative_questions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_submissions: {
         Row: {
           answers: Json
@@ -56,21 +103,30 @@ export type Database = {
       assignments: {
         Row: {
           content: Json
+          content_status: Database["public"]["Enums"]["content_status"]
           created_at: string | null
           id: string
           module_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
         }
         Insert: {
           content: Json
+          content_status?: Database["public"]["Enums"]["content_status"]
           created_at?: string | null
           id?: string
           module_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
         }
         Update: {
           content?: Json
+          content_status?: Database["public"]["Enums"]["content_status"]
           created_at?: string | null
           id?: string
           module_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
         }
         Relationships: [
           {
@@ -81,6 +137,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_reviews: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          feedback: string | null
+          id: string
+          rating: number | null
+          reviewer_id: string
+          status: Database["public"]["Enums"]["content_status"]
+          updated_at: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating?: number | null
+          reviewer_id: string
+          status: Database["public"]["Enums"]["content_status"]
+          updated_at?: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating?: number | null
+          reviewer_id?: string
+          status?: Database["public"]["Enums"]["content_status"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       discussion_replies: {
         Row: {
@@ -448,6 +540,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "instructor" | "user"
+      content_status: "draft" | "pending_review" | "approved" | "flagged"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -576,6 +669,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "instructor", "user"],
+      content_status: ["draft", "pending_review", "approved", "flagged"],
     },
   },
 } as const
