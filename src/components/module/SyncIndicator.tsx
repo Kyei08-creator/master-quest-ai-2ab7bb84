@@ -6,9 +6,10 @@ interface SyncIndicatorProps {
   lastAutoSave: Date | null;
   onSync: () => void;
   disabled?: boolean;
+  queueSize?: number;
 }
 
-export const SyncIndicator = ({ syncing, lastAutoSave, onSync, disabled }: SyncIndicatorProps) => {
+export const SyncIndicator = ({ syncing, lastAutoSave, onSync, disabled, queueSize = 0 }: SyncIndicatorProps) => {
   return (
     <div className="flex items-center gap-3">
       {lastAutoSave && (
@@ -18,6 +19,11 @@ export const SyncIndicator = ({ syncing, lastAutoSave, onSync, disabled }: SyncI
             syncing && "animate-pulse text-primary"
           )} />
           <span>Last synced: {lastAutoSave.toLocaleTimeString()}</span>
+          {queueSize > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-xs font-medium">
+              {queueSize} queued
+            </span>
+          )}
         </div>
       )}
       

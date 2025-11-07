@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useSyncQueue } from "@/hooks/useSyncQueue";
 import { AssignmentEmpty } from "./assignment/AssignmentEmpty";
 import { AssignmentSubmitted } from "./assignment/AssignmentSubmitted";
 import { AssignmentHeader } from "./assignment/AssignmentHeader";
@@ -51,6 +52,7 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const { addToQueue, queueSize } = useSyncQueue();
 
   const storageKey = `assignmentState:${moduleId}`;
 
@@ -86,8 +88,10 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   const syncToCloud = async () => {
     if (!assignment) return;
     setSyncing(true);
+    
+    const payload = { answers, currentSection, submitted };
+    
     try {
-      const payload = { answers, currentSection, submitted };
       const { error } = await supabase
         .from("module_progress_drafts")
         .upsert([{
@@ -103,7 +107,15 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
       localStorage.setItem(storageKey, JSON.stringify(payload));
     } catch (err: any) {
       console.error("Cloud sync failed", err);
-      toast.error("Failed to sync. Check your connection.");
+      
+      // Add to queue for retry when online
+      addToQueue({
+        moduleId,
+        draftType: "assignment",
+        data: payload,
+      });
+      
+      toast.error("Offline - sync queued for retry", { duration: 3000 });
     } finally {
       setSyncing(false);
     }
@@ -268,6 +280,7 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
             syncing={syncing}
             lastAutoSave={lastAutoSave}
             onSync={syncToCloud}
+            queueSize={queueSize}
           />
         </div>
         
