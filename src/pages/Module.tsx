@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -320,16 +320,48 @@ const ModuleContent = ({
   loadModule: () => void;
 }) => {
   const { syncing, lastBatchSync, syncAll, queueSize, nextRetryTime, registeredCount } = useBatchSyncContext();
+  const previousTabRef = useRef(activeTab);
+  const [autoSyncInProgress, setAutoSyncInProgress] = useState(false);
+
+  // Auto-sync when switching tabs
+  useEffect(() => {
+    const handleTabChange = async () => {
+      // Skip if this is the first render or if already syncing
+      if (previousTabRef.current === activeTab || syncing || autoSyncInProgress) {
+        return;
+      }
+
+      // Only auto-sync if there are registered items to sync
+      if (registeredCount > 0) {
+        setAutoSyncInProgress(true);
+        try {
+          await syncAll();
+          toast.info("💾 Auto-saved progress from previous tab", {
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error("Auto-sync failed:", error);
+        } finally {
+          setAutoSyncInProgress(false);
+        }
+      }
+
+      previousTabRef.current = activeTab;
+    };
+
+    handleTabChange();
+  }, [activeTab, registeredCount, syncing, syncAll, autoSyncInProgress]);
 
   return (
     <>
       <BatchSyncIndicator
-        syncing={syncing}
+        syncing={syncing || autoSyncInProgress}
         lastBatchSync={lastBatchSync}
         onSyncAll={syncAll}
         queueSize={queueSize}
         nextRetryTime={nextRetryTime}
         registeredCount={registeredCount}
+        autoSyncing={autoSyncInProgress}
       />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">

@@ -11,6 +11,7 @@ interface BatchSyncIndicatorProps {
   queueSize?: number;
   nextRetryTime?: Date | null;
   registeredCount?: number;
+  autoSyncing?: boolean;
 }
 
 export const BatchSyncIndicator = ({ 
@@ -19,7 +20,8 @@ export const BatchSyncIndicator = ({
   onSyncAll, 
   queueSize = 0, 
   nextRetryTime,
-  registeredCount = 0 
+  registeredCount = 0,
+  autoSyncing = false
 }: BatchSyncIndicatorProps) => {
   const isOnline = useOnlineStatus();
 
@@ -61,31 +63,35 @@ export const BatchSyncIndicator = ({
         )}
         
         {lastBatchSync && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground animate-fade-in">
             <Cloud className={cn(
               "w-4 h-4 transition-all duration-300",
-              syncing && "animate-pulse text-primary"
+              (syncing || autoSyncing) && "animate-pulse text-primary"
             )} />
-            <span>Last synced: {lastBatchSync.toLocaleTimeString()}</span>
+            <span>
+              {autoSyncing ? "Auto-saving..." : `Last synced: ${lastBatchSync.toLocaleTimeString()}`}
+            </span>
           </div>
         )}
         
         <Button
           onClick={onSyncAll}
-          disabled={syncing || !isOnline}
+          disabled={syncing || !isOnline || autoSyncing}
           size="sm"
           variant="outline"
           className={cn(
             "gap-2",
-            syncing && "opacity-70"
+            (syncing || autoSyncing) && "opacity-70"
           )}
         >
           <RefreshCw className={cn(
             "w-3.5 h-3.5 transition-transform duration-500",
-            syncing && "animate-spin"
+            (syncing || autoSyncing) && "animate-spin"
           )} />
-          <span>{syncing ? "Syncing All..." : "Sync All Tabs"}</span>
-          {registeredCount > 0 && !syncing && (
+          <span>
+            {autoSyncing ? "Auto-syncing..." : syncing ? "Syncing All..." : "Sync All Tabs"}
+          </span>
+          {registeredCount > 0 && !syncing && !autoSyncing && (
             <span className="text-xs text-muted-foreground">
               ({registeredCount})
             </span>
