@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Sparkles, BookOpen } from "lucide-react";
+import { Sparkles, BookOpen, GraduationCap, User } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"user" | "instructor">("user");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -46,11 +48,12 @@ const Auth = () => {
             emailRedirectTo: `${window.location.origin}/dashboard`,
             data: {
               full_name: fullName,
+              role: role,
             },
           },
         });
         if (error) throw error;
-        toast.success("Account created! Welcome to Quantum Leap!");
+        toast.success(`Account created! Welcome ${role === "instructor" ? "Instructor" : "Student"}!`);
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
@@ -84,17 +87,45 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required={!isLogin}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required={!isLogin}
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Label>I am a...</Label>
+                    <RadioGroup value={role} onValueChange={(value) => setRole(value as "user" | "instructor")}>
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-accent cursor-pointer">
+                        <RadioGroupItem value="user" id="student" />
+                        <Label htmlFor="student" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <User className="h-4 w-4 text-primary" />
+                          <div>
+                            <p className="font-medium">Student</p>
+                            <p className="text-xs text-muted-foreground">Learn and complete modules</p>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-accent cursor-pointer">
+                        <RadioGroupItem value="instructor" id="instructor" />
+                        <Label htmlFor="instructor" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <GraduationCap className="h-4 w-4 text-primary" />
+                          <div>
+                            <p className="font-medium">Instructor</p>
+                            <p className="text-xs text-muted-foreground">Grade, review content, and manage questions</p>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
