@@ -1,0 +1,154 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Presentation, Download, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+
+interface PresentationsTabProps {
+  moduleId: string;
+  moduleTopic: string;
+}
+
+interface Slide {
+  title: string;
+  content: string;
+}
+
+const PresentationsTab = ({ moduleId, moduleTopic }: PresentationsTabProps) => {
+  const [slides, setSlides] = useState<Slide[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadPresentation();
+  }, [moduleId]);
+
+  const loadPresentation = async () => {
+    const saved = localStorage.getItem(`presentation:${moduleId}`);
+    if (saved) {
+      setSlides(JSON.parse(saved));
+    }
+  };
+
+  const generatePresentation = async () => {
+    setLoading(true);
+    try {
+      // This would call an edge function to generate presentation
+      const sampleSlides: Slide[] = [
+        {
+          title: `Introduction to ${moduleTopic}`,
+          content: `Welcome to this comprehensive overview of ${moduleTopic}. In this presentation, we'll explore the key concepts and practical applications.`
+        },
+        {
+          title: "Key Concepts",
+          content: "• Understanding the fundamentals\n• Core principles and theories\n• Real-world applications\n• Best practices"
+        },
+        {
+          title: "Summary",
+          content: `Now you have a better understanding of ${moduleTopic}. Continue exploring the resources and complete the assignments to master this topic.`
+        }
+      ];
+
+      setSlides(sampleSlides);
+      localStorage.setItem(`presentation:${moduleId}`, JSON.stringify(sampleSlides));
+      toast.success("Presentation generated!");
+    } catch (error) {
+      toast.error("Failed to generate presentation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadPresentation = () => {
+    toast.info("Download feature coming soon!");
+  };
+
+  if (slides.length === 0) {
+    return (
+      <Card className="shadow-card-custom">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Presentation className="w-5 h-5 text-primary" />
+            AI Presentation
+          </CardTitle>
+          <CardDescription>
+            Generate a PowerPoint-style presentation for {moduleTopic}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <p className="text-muted-foreground mb-6 text-center">
+            No presentation yet. Generate an AI-powered presentation to visualize key concepts!
+          </p>
+          <Button onClick={generatePresentation} disabled={loading} size="lg">
+            <Sparkles className="w-4 h-4 mr-2" />
+            {loading ? "Generating..." : "Generate Presentation"}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Presentation</h3>
+          <p className="text-sm text-muted-foreground">
+            Slide {currentSlide + 1} of {slides.length}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={generatePresentation} disabled={loading} variant="outline">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Regenerate
+          </Button>
+          <Button onClick={downloadPresentation} variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
+        </div>
+      </div>
+
+      <Card className="shadow-card-custom min-h-[500px] bg-gradient-to-br from-background to-muted/20">
+        <CardContent className="p-12">
+          <div className="space-y-8">
+            <h2 className="text-4xl font-bold">{slides[currentSlide].title}</h2>
+            <div className="text-lg leading-relaxed whitespace-pre-line">
+              {slides[currentSlide].content}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+          disabled={currentSlide === 0}
+        >
+          Previous
+        </Button>
+        <div className="flex gap-2">
+          {slides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`w-8 h-2 rounded-full transition-colors ${
+                idx === currentSlide ? "bg-primary" : "bg-muted hover:bg-muted-foreground/20"
+              }`}
+            />
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
+          disabled={currentSlide === slides.length - 1}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default PresentationsTab;

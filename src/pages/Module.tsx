@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw, MessageCircle, Share2, Users } from "lucide-react";
+import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw, MessageCircle, Share2, Users, CreditCard, Presentation } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ResourcesTab from "@/components/module/ResourcesTab";
 import AssignmentTab from "@/components/module/AssignmentTab";
 import QuizTab from "@/components/module/QuizTab";
 import ResultsTab from "@/components/module/ResultsTab";
 import { DiscussionsTab } from "@/components/module/DiscussionsTab";
+import FlashcardsTab from "@/components/module/FlashcardsTab";
+import PresentationsTab from "@/components/module/PresentationsTab";
 import { ShareModuleDialog } from "@/components/module/ShareModuleDialog";
 import { useModulePresence } from "@/hooks/useModulePresence";
 import { ModulePresence } from "@/components/module/ModulePresence";
@@ -220,10 +222,19 @@ const Module = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-8 h-auto gap-1 p-1">
+          <TabsList className="grid w-full grid-cols-7 mb-8 h-auto gap-1 p-1">
             <TabsTrigger value="resources" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <BookOpen className="w-4 h-4 sm:mr-0" />
               <span className="text-xs sm:text-sm">Resources</span>
+            </TabsTrigger>
+            <TabsTrigger value="flashcards" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
+              <CreditCard className="w-4 h-4 sm:mr-0" />
+              <span className="text-xs sm:text-sm">Flashcards</span>
+            </TabsTrigger>
+            <TabsTrigger value="presentations" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
+              <Presentation className="w-4 h-4 sm:mr-0" />
+              <span className="text-xs sm:text-sm hidden sm:inline">Presentations</span>
+              <span className="text-xs sm:hidden">Slides</span>
             </TabsTrigger>
             <TabsTrigger value="assignment" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <FileText className="w-4 h-4 sm:mr-0" />
@@ -247,6 +258,14 @@ const Module = () => {
 
           <TabsContent value="resources">
             <ResourcesTab moduleId={id!} moduleTopic={module.topic} />
+          </TabsContent>
+
+          <TabsContent value="flashcards">
+            <FlashcardsTab moduleId={id!} moduleTopic={module.topic} />
+          </TabsContent>
+
+          <TabsContent value="presentations">
+            <PresentationsTab moduleId={id!} moduleTopic={module.topic} />
           </TabsContent>
 
           <TabsContent value="assignment">
