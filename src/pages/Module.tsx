@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw } from "lucide-react";
+import { ArrowLeft, Sparkles, BookOpen, GraduationCap, FileText, RotateCcw, MessageCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ResourcesTab from "@/components/module/ResourcesTab";
 import AssignmentTab from "@/components/module/AssignmentTab";
 import QuizTab from "@/components/module/QuizTab";
 import ResultsTab from "@/components/module/ResultsTab";
+import { DiscussionsTab } from "@/components/module/DiscussionsTab";
 
 interface Module {
   id: string;
@@ -108,7 +109,7 @@ const Module = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-8 h-auto gap-1 p-1">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-8 h-auto gap-1 p-1">
             <TabsTrigger value="resources" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <BookOpen className="w-4 h-4 sm:mr-0" />
               <span className="text-xs sm:text-sm">Resources</span>
@@ -116,6 +117,10 @@ const Module = () => {
             <TabsTrigger value="assignment" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <FileText className="w-4 h-4 sm:mr-0" />
               <span className="text-xs sm:text-sm">Assignment</span>
+            </TabsTrigger>
+            <TabsTrigger value="discussions" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
+              <MessageCircle className="w-4 h-4 sm:mr-0" />
+              <span className="text-xs sm:text-sm">Discuss</span>
             </TabsTrigger>
             <TabsTrigger value="quiz" className="flex-col sm:flex-row gap-1 sm:gap-2 px-2 sm:px-3 py-2">
               <Sparkles className="w-4 h-4 sm:mr-0" />
@@ -139,6 +144,10 @@ const Module = () => {
 
           <TabsContent value="assignment">
             <AssignmentTab moduleId={id!} moduleTopic={module.topic} />
+          </TabsContent>
+
+          <TabsContent value="discussions">
+            <DiscussionsTab moduleId={id!} />
           </TabsContent>
 
           <TabsContent value="quiz">
