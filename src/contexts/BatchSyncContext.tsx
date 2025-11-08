@@ -1,6 +1,18 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useBatchSync } from "@/hooks/useBatchSync";
 
+interface QueueItem {
+  id: string;
+  moduleId: string;
+  draftType: "assignment" | "quiz" | "flashcards" | "presentations";
+  quizType?: "quiz" | "final_test";
+  data: any;
+  timestamp: number;
+  retryCount: number;
+  nextRetryAt: number;
+  lastSyncAttempt?: number;
+}
+
 interface BatchSyncContextType {
   syncing: boolean;
   lastBatchSync: Date | null;
@@ -12,8 +24,10 @@ interface BatchSyncContextType {
   }) => void;
   unregister: (key: string) => void;
   queueSize: number;
+  queueItems: QueueItem[];
   nextRetryTime: Date | null;
   registeredCount: number;
+  syncStats: { success: number; failed: number; total: number };
   onConflict?: (tabName: string) => void;
 }
 

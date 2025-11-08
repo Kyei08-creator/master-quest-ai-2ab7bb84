@@ -207,6 +207,7 @@ export const useSyncQueue = () => {
 
   return {
     queue,
+    queueItems: queue, // Expose queue items for dashboard
     addToQueue,
     removeFromQueue,
     processQueue,

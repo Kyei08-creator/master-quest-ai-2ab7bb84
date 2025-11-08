@@ -1,16 +1,32 @@
-import { Cloud, RefreshCw, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { Cloud, RefreshCw, AlertTriangle, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { SyncStatusDashboard } from "./SyncStatusDashboard";
+
+interface QueueItem {
+  id: string;
+  moduleId: string;
+  draftType: "assignment" | "quiz" | "flashcards" | "presentations";
+  quizType?: "quiz" | "final_test";
+  data: any;
+  timestamp: number;
+  retryCount: number;
+  nextRetryAt: number;
+  lastSyncAttempt?: number;
+}
 
 interface BatchSyncIndicatorProps {
   syncing: boolean;
   lastBatchSync: Date | null;
   onSyncAll: () => void;
   queueSize?: number;
+  queueItems?: QueueItem[];
   nextRetryTime?: Date | null;
   registeredCount?: number;
+  syncStats?: { success: number; failed: number; total: number };
   autoSyncing?: boolean;
 }
 
@@ -18,12 +34,15 @@ export const BatchSyncIndicator = ({
   syncing, 
   lastBatchSync, 
   onSyncAll, 
-  queueSize = 0, 
+  queueSize = 0,
+  queueItems = [],
   nextRetryTime,
   registeredCount = 0,
+  syncStats = { success: 0, failed: 0, total: 0 },
   autoSyncing = false
 }: BatchSyncIndicatorProps) => {
   const isOnline = useOnlineStatus();
+  const [dashboardOpen, setDashboardOpen] = useState(false);
 
   const formatRetryTime = (date: Date) => {
     const now = new Date();
@@ -41,7 +60,18 @@ export const BatchSyncIndicator = ({
   }
 
   return (
-    <div className="space-y-3">
+    <>
+      <SyncStatusDashboard
+        open={dashboardOpen}
+        onOpenChange={setDashboardOpen}
+        queueItems={queueItems}
+        syncStats={syncStats}
+        lastBatchSync={lastBatchSync}
+        registeredCount={registeredCount}
+        syncing={syncing}
+      />
+      
+      <div className="space-y-3">
       {queueSize > 0 && (
         <Alert variant="default" className="border-warning/50 bg-warning/5">
           <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning" />
@@ -78,39 +108,52 @@ export const BatchSyncIndicator = ({
           </div>
         )}
         
-        <Button
-          onClick={onSyncAll}
-          disabled={syncing || !isOnline || autoSyncing}
-          size="sm"
-          variant="outline"
-          className={cn(
-            "gap-1.5 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm",
-            (syncing || autoSyncing) && "opacity-70"
-          )}
-        >
-          <RefreshCw className={cn(
-            "w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-500",
-            (syncing || autoSyncing) && "animate-spin"
-          )} />
-          <span className="hidden xs:inline">
-            {autoSyncing 
-              ? "Auto-saving..." 
-              : syncing 
-                ? "Syncing..." 
-                : registeredCount === 0 
-                  ? "No changes" 
-                  : "Sync All Tabs"}
-          </span>
-          <span className="xs:hidden">
-            {autoSyncing || syncing ? "Saving..." : "Sync"}
-          </span>
-          {registeredCount > 0 && !syncing && !autoSyncing && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              ({registeredCount})
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={onSyncAll}
+            disabled={syncing || !isOnline || autoSyncing}
+            size="sm"
+            variant="outline"
+            className={cn(
+              "gap-1.5 sm:gap-2 h-8 sm:h-9 text-xs sm:text-sm",
+              (syncing || autoSyncing) && "opacity-70"
+            )}
+          >
+            <RefreshCw className={cn(
+              "w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-500",
+              (syncing || autoSyncing) && "animate-spin"
+            )} />
+            <span className="hidden xs:inline">
+              {autoSyncing 
+                ? "Auto-saving..." 
+                : syncing 
+                  ? "Syncing..." 
+                  : registeredCount === 0 
+                    ? "No changes" 
+                    : "Sync All Tabs"}
             </span>
-          )}
-        </Button>
+            <span className="xs:hidden">
+              {autoSyncing || syncing ? "Saving..." : "Sync"}
+            </span>
+            {registeredCount > 0 && !syncing && !autoSyncing && (
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                ({registeredCount})
+              </span>
+            )}
+          </Button>
+
+          <Button
+            onClick={() => setDashboardOpen(true)}
+            size="sm"
+            variant="ghost"
+            className="gap-1.5 h-8 sm:h-9 text-xs sm:text-sm"
+          >
+            <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span className="hidden xs:inline">Status</span>
+          </Button>
+        </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

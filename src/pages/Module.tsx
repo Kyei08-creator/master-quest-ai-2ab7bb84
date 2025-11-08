@@ -361,7 +361,7 @@ const ModuleContent = ({
   onDismissConflicts: () => void;
   onRefreshModule: () => void;
 }) => {
-  const { syncing, lastBatchSync, syncAll, queueSize, nextRetryTime, registeredCount } = useBatchSyncContext();
+  const { syncing, lastBatchSync, syncAll, queueSize, queueItems, nextRetryTime, registeredCount, syncStats } = useBatchSyncContext();
   const previousTabRef = useRef(activeTab);
   const [autoSyncInProgress, setAutoSyncInProgress] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -464,8 +464,10 @@ const ModuleContent = ({
         lastBatchSync={lastBatchSync}
         onSyncAll={syncAll}
         queueSize={queueSize}
+        queueItems={queueItems}
         nextRetryTime={nextRetryTime}
         registeredCount={registeredCount}
+        syncStats={syncStats}
         autoSyncing={autoSyncInProgress}
       />
       

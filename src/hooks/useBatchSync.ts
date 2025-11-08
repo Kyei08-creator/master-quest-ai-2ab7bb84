@@ -12,7 +12,8 @@ interface BatchSyncItem {
 export const useBatchSync = (moduleId: string, onConflict?: (tabName: string) => void) => {
   const [syncing, setSyncing] = useState(false);
   const [lastBatchSync, setLastBatchSync] = useState<Date | null>(null);
-  const { addToQueue, queueSize, getNextRetryTime, processQueue } = useSyncQueue();
+  const [syncStats, setSyncStats] = useState({ success: 0, failed: 0, total: 0 });
+  const { addToQueue, queueSize, queueItems, getNextRetryTime, processQueue } = useSyncQueue();
   const [registeredItems, setRegisteredItems] = useState<Map<string, BatchSyncItem>>(new Map());
 
   // Register a tab's sync function
@@ -131,6 +132,11 @@ export const useBatchSync = (moduleId: string, onConflict?: (tabName: string) =>
       await Promise.allSettled(syncPromises);
 
       setLastBatchSync(new Date());
+      setSyncStats(prev => ({ 
+        success: prev.success + successCount, 
+        failed: prev.failed + failCount,
+        total: prev.total + successCount + failCount
+      }));
 
       if (successCount > 0 && failCount === 0) {
         toast.success(`✅ All changes saved (${successCount} ${successCount === 1 ? 'tab' : 'tabs'})`, {
@@ -164,8 +170,10 @@ export const useBatchSync = (moduleId: string, onConflict?: (tabName: string) =>
     register,
     unregister,
     queueSize,
+    queueItems,
     nextRetryTime: getNextRetryTime(),
     registeredCount: registeredItems.size,
+    syncStats,
     onConflict,
   };
 };
