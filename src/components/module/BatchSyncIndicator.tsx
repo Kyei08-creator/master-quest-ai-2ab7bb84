@@ -153,7 +153,7 @@ export const BatchSyncIndicator = ({
           </Button>
         </div>
       </div>
-      </div>
+    </div>
     </>
   );
 };
