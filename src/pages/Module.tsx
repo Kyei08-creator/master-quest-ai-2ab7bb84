@@ -43,9 +43,17 @@ const Module = () => {
 
   useEffect(() => {
     if (id) {
-      handleShareToken();
-      loadModule();
-      loadMemberCount();
+      // If there's a share token, wait for it to complete before loading
+      const shareToken = searchParams.get('share');
+      if (shareToken) {
+        handleShareToken().then(() => {
+          loadModule();
+          loadMemberCount();
+        });
+      } else {
+        loadModule();
+        loadMemberCount();
+      }
     }
   }, [id]);
 
@@ -166,9 +174,21 @@ const Module = () => {
         .from("modules")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Module not found", {
+          description: "This module doesn't exist or you don't have access to it.",
+          cancel: {
+            label: "Go Back",
+            onClick: () => navigate("/dashboard"),
+          },
+        });
+        navigate("/dashboard");
+        return;
+      }
 
       setModule(data);
       
@@ -177,10 +197,16 @@ const Module = () => {
       if (user.user) {
         setIsOwner(data.user_id === user.user.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to load module:", error);
+      
+      // Check if it's a permission error
+      const isPermissionError = error?.code === 'PGRST116' || error?.message?.includes('row-level security');
+      
       toast.error("Failed to load module data", {
-        description: "Unable to fetch module information. Please try again.",
+        description: isPermissionError 
+          ? "You don't have permission to access this module. Please request access from the module creator."
+          : "Unable to fetch module information. Please try again.",
         action: {
           label: "Retry",
           onClick: () => loadModule(),
