@@ -303,74 +303,89 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
   const currentQuestions = quizData.questions.slice(startIndex, endIndex);
 
   return (
-    <Card className="shadow-card-custom animate-fade-in">
-      <QuizHeader
-        moduleTopic={moduleTopic}
-        quizType={quizType}
-        answeredCount={Object.keys(answers).length}
-        totalQuestions={totalQuestions}
-        currentQuestionIndex={currentQuestionIndex}
-        questionsPerPage={questionsPerPage}
-        metrics={quizData.metrics}
-        onPageChange={setCurrentQuestionIndex}
-      />
-      
-      <CardContent className="space-y-6">
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportQuizToPDF(moduleTopic, quizType, quizData.questions, answers)}
-          >
-            <FileDown className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
-          <SyncIndicator
-            syncing={syncing}
-            lastAutoSave={lastAutoSave}
-            onSync={syncToCloud}
-            queueSize={queueSize}
-            nextRetryTime={getNextRetryTime()}
-          />
-        </div>
-        
-        <ProgressIndicator
-          current={Object.keys(answers).length}
-          total={totalQuestions}
-          label="Questions Answered"
-          variant="questions"
-        />
-        
-        <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
-        
-        <div key={currentQuestionIndex} className="space-y-6 animate-fade-in">
-          {currentQuestions.map((q, localIndex) => {
-            const qIndex = startIndex + localIndex;
-            return (
-              <QuizQuestion
-                key={qIndex}
-                question={q}
-                questionIndex={qIndex}
-                answer={answers[qIndex]}
-                onAnswerChange={(value) => setAnswers({ ...answers, [qIndex]: value })}
-              />
-            );
-          })}
-        </div>
-
-        <QuizNavigation
-          currentQuestionIndex={currentQuestionIndex}
-          endIndex={endIndex}
-          totalQuestions={totalQuestions}
-          questionsPerPage={questionsPerPage}
+    <div className="space-y-6">
+      <Card className="shadow-card-custom animate-fade-in">
+        <QuizHeader
+          moduleTopic={moduleTopic}
           quizType={quizType}
           answeredCount={Object.keys(answers).length}
-          onPrevious={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - questionsPerPage))}
-          onNext={() => setCurrentQuestionIndex(endIndex)}
-          onSubmit={submitQuiz}
+          totalQuestions={totalQuestions}
+          currentQuestionIndex={currentQuestionIndex}
+          questionsPerPage={questionsPerPage}
+          metrics={quizData.metrics}
+          onPageChange={setCurrentQuestionIndex}
         />
-      </CardContent>
-    </Card>
+        
+        <CardContent className="space-y-6">
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportQuizToPDF(moduleTopic, quizType, quizData.questions, answers)}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <SyncIndicator
+              syncing={syncing}
+              lastAutoSave={lastAutoSave}
+              onSync={syncToCloud}
+              queueSize={queueSize}
+              nextRetryTime={getNextRetryTime()}
+            />
+          </div>
+          
+          <ProgressIndicator
+            current={Object.keys(answers).length}
+            total={totalQuestions}
+            label="Questions Answered"
+            variant="questions"
+          />
+          
+          <h3 className="text-lg font-semibold">Your {quizType === "quiz" ? "Quiz" : "Test"} Questions</h3>
+          
+          <div key={currentQuestionIndex} className="space-y-6 animate-fade-in">
+            {currentQuestions.map((q, localIndex) => {
+              const qIndex = startIndex + localIndex;
+              return (
+                <QuizQuestion
+                  key={qIndex}
+                  question={q}
+                  questionIndex={qIndex}
+                  answer={answers[qIndex]}
+                  onAnswerChange={(value) => setAnswers({ ...answers, [qIndex]: value })}
+                />
+              );
+            })}
+          </div>
+
+          <QuizNavigation
+            currentQuestionIndex={currentQuestionIndex}
+            endIndex={endIndex}
+            totalQuestions={totalQuestions}
+            questionsPerPage={questionsPerPage}
+            quizType={quizType}
+            answeredCount={Object.keys(answers).length}
+            onPrevious={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - questionsPerPage))}
+            onNext={() => setCurrentQuestionIndex(endIndex)}
+            onSubmit={submitQuiz}
+          />
+        </CardContent>
+      </Card>
+      
+      <div>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold">Alternative: Submit a Document</h3>
+          <p className="text-sm text-muted-foreground">
+            Prefer to work offline? Upload your completed {quizType === 'final_test' ? 'final test' : 'quiz'} document for AI grading
+          </p>
+        </div>
+        <DocumentUpload 
+          moduleId={moduleId}
+          assessmentType={quizType}
+        />
+      </div>
+    </div>
   );
 };
 

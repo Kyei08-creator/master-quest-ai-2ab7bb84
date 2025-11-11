@@ -313,71 +313,86 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
   }
 
   return (
-    <Card className="shadow-card-custom animate-fade-in animate-scale-in">
-      <AssignmentHeader
-        moduleTopic={moduleTopic}
-        title={assignment.content.title}
-        description={assignment.content.description}
-        totalMarks={assignment.content.totalMarks}
-        sections={assignment.content.sections}
-        currentSection={currentSection}
-        generating={generating}
-        onSectionChange={setCurrentSection}
-        onRegenerate={generateAssignment}
-      />
-      
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportAssignmentToPDF(moduleTopic, assignment.content.sections, answers)}
-          >
-            <FileDown className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
-          <SyncIndicator
-            syncing={syncing}
-            lastAutoSave={lastAutoSave}
-            onSync={syncToCloud}
-            queueSize={queueSize}
-            nextRetryTime={getNextRetryTime()}
-          />
-        </div>
-        
-        <ProgressIndicator
-          current={currentSection + 1}
-          total={assignment.content.sections.length}
-          label="Assignment Progress"
-          variant="sections"
-        />
-        
-        <div key={currentSection} className="animate-fade-in mt-6">
-          <AssignmentSection
-            section={currentSectionData}
-            answers={answers}
-            onAnswerChange={handleAnswerChange}
-            assignmentId={assignment.id}
-          />
-        </div>
-
-        <AssignmentNavigation
+    <div className="space-y-6">
+      <Card className="shadow-card-custom animate-fade-in animate-scale-in">
+        <AssignmentHeader
+          moduleTopic={moduleTopic}
+          title={assignment.content.title}
+          description={assignment.content.description}
+          totalMarks={assignment.content.totalMarks}
+          sections={assignment.content.sections}
           currentSection={currentSection}
-          totalSections={assignment.content.sections.length}
-          submitting={submitting}
-          onPrevious={() => setCurrentSection(Math.max(0, currentSection - 1))}
-          onNext={() => setCurrentSection(currentSection + 1)}
-          onSubmit={submitAssignment}
+          generating={generating}
+          onSectionChange={setCurrentSection}
+          onRegenerate={generateAssignment}
         />
+        
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportAssignmentToPDF(moduleTopic, assignment.content.sections, answers)}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <SyncIndicator
+              syncing={syncing}
+              lastAutoSave={lastAutoSave}
+              onSync={syncToCloud}
+              queueSize={queueSize}
+              nextRetryTime={getNextRetryTime()}
+            />
+          </div>
+          
+          <ProgressIndicator
+            current={currentSection + 1}
+            total={assignment.content.sections.length}
+            label="Assignment Progress"
+            variant="sections"
+          />
+          
+          <div key={currentSection} className="animate-fade-in mt-6">
+            <AssignmentSection
+              section={currentSectionData}
+              answers={answers}
+              onAnswerChange={handleAnswerChange}
+              assignmentId={assignment.id}
+            />
+          </div>
 
-        <div className="mt-6 sm:mt-8 border-t pt-4 sm:pt-6">
-          <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Resources for this Assignment</h4>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Check the Resources tab for curated learning materials.
+          <AssignmentNavigation
+            currentSection={currentSection}
+            totalSections={assignment.content.sections.length}
+            submitting={submitting}
+            onPrevious={() => setCurrentSection(Math.max(0, currentSection - 1))}
+            onNext={() => setCurrentSection(currentSection + 1)}
+            onSubmit={submitAssignment}
+          />
+
+          <div className="mt-6 sm:mt-8 border-t pt-4 sm:pt-6">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Resources for this Assignment</h4>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Check the Resources tab for curated learning materials.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div>
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold">Alternative: Submit a Document</h3>
+          <p className="text-sm text-muted-foreground">
+            Prefer to work offline? Upload your completed assignment document for AI grading
           </p>
         </div>
-      </CardContent>
-    </Card>
+        <DocumentUpload 
+          moduleId={moduleId}
+          assessmentType="assignment"
+        />
+      </div>
+    </div>
   );
 };
 
