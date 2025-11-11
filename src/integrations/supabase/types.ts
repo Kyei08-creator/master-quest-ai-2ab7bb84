@@ -328,6 +328,74 @@ export type Database = {
           },
         ]
       }
+      document_submissions: {
+        Row: {
+          ai_feedback: string | null
+          assessment_type: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number
+          graded_at: string | null
+          id: string
+          module_id: string
+          page_count: number | null
+          score: number | null
+          status: string
+          submitted_at: string
+          total_marks: number | null
+          updated_at: string
+          user_id: string
+          word_count: number | null
+        }
+        Insert: {
+          ai_feedback?: string | null
+          assessment_type: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size: number
+          graded_at?: string | null
+          id?: string
+          module_id: string
+          page_count?: number | null
+          score?: number | null
+          status?: string
+          submitted_at?: string
+          total_marks?: number | null
+          updated_at?: string
+          user_id: string
+          word_count?: number | null
+        }
+        Update: {
+          ai_feedback?: string | null
+          assessment_type?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          graded_at?: string | null
+          id?: string
+          module_id?: string
+          page_count?: number | null
+          score?: number | null
+          status?: string
+          submitted_at?: string
+          total_marks?: number | null
+          updated_at?: string
+          user_id?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_submissions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcards: {
         Row: {
           answer: string

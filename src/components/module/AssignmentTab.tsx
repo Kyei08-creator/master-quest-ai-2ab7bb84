@@ -14,6 +14,7 @@ import { ProgressIndicator } from "./ProgressIndicator";
 import { exportAssignmentToPDF } from "@/lib/pdfExport";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
+import { DocumentUpload } from "./DocumentUpload";
 
 interface Task {
   id: string;
@@ -272,11 +273,28 @@ const AssignmentTab = ({ moduleId, moduleTopic }: AssignmentTabProps) => {
 
   if (!assignment) {
     return (
-      <AssignmentEmpty
-        moduleTopic={moduleTopic}
-        generating={generating}
-        onGenerate={generateAssignment}
-      />
+      <div className="space-y-6">
+        <AssignmentEmpty
+          moduleTopic={moduleTopic}
+          generating={generating}
+          onGenerate={generateAssignment}
+        />
+        
+        {!generating && (
+          <div>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold">Alternative: Submit a Document</h3>
+              <p className="text-sm text-muted-foreground">
+                Don't have an assignment yet? Upload your completed work directly for AI grading
+              </p>
+            </div>
+            <DocumentUpload 
+              moduleId={moduleId}
+              assessmentType="assignment"
+            />
+          </div>
+        )}
+      </div>
     );
   }
 

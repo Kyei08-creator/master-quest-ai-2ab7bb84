@@ -51,6 +51,12 @@ verify_jwt = false
 [functions.generate-presentations]
 verify_jwt = false
 
+[functions.public-discussions]
+verify_jwt = false
+
+[functions.grade-document]
+verify_jwt = true
+
 # Database settings
 [db]
 major_version = 15

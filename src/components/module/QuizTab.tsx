@@ -14,6 +14,7 @@ import { ProgressIndicator } from "./ProgressIndicator";
 import { exportQuizToPDF } from "@/lib/pdfExport";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
+import { DocumentUpload } from "./DocumentUpload";
 
 interface Question {
   question: string;
@@ -252,11 +253,28 @@ const QuizTab = ({ moduleId, moduleTopic, quizType, onComplete }: QuizTabProps) 
 
   if (!quizData) {
     return (
-      <QuizEmpty
-        quizType={quizType}
-        generating={generating}
-        onGenerate={generateQuiz}
-      />
+      <div className="space-y-6">
+        <QuizEmpty
+          quizType={quizType}
+          generating={generating}
+          onGenerate={generateQuiz}
+        />
+        
+        {!generating && (
+          <div>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold">Alternative: Submit a Document</h3>
+              <p className="text-sm text-muted-foreground">
+                Don't have a {quizType === 'final_test' ? 'final test' : 'practice quiz'} yet? Upload your completed work directly for AI grading
+              </p>
+            </div>
+            <DocumentUpload 
+              moduleId={moduleId}
+              assessmentType={quizType}
+            />
+          </div>
+        )}
+      </div>
     );
   }
 
