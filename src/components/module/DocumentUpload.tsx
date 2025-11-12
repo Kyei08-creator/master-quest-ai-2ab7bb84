@@ -9,7 +9,7 @@ import { Upload, FileText, Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 interface DocumentUploadProps {
   moduleId: string;
-  assessmentType: 'assignment' | 'quiz' | 'final_test';
+  assessmentType: 'assignment' | 'quiz' | 'final_test' | 'presentation' | 'flashcard';
   onUploadComplete?: () => void;
 }
 
@@ -183,13 +183,35 @@ export const DocumentUpload = ({ moduleId, assessmentType, onUploadComplete }: D
     );
   }
 
+  const getUploadTitle = () => {
+    switch (assessmentType) {
+      case 'presentation':
+        return 'Upload Presentation Notes';
+      case 'flashcard':
+        return 'Upload Study Material';
+      default:
+        return 'Submit Your Assessment';
+    }
+  };
+
+  const getUploadDescription = () => {
+    switch (assessmentType) {
+      case 'presentation':
+        return 'Upload your document to generate presentation slides. Maximum 10 pages, 7000 words.';
+      case 'flashcard':
+        return 'Upload your study material to generate flashcards. Maximum 10 pages, 7000 words.';
+      default:
+        return 'Upload your completed assessment document. Maximum 10 pages, 7000 words.';
+    }
+  };
+
   return (
     <Card className="p-6">
       <div className="space-y-4">
         <div>
-          <h3 className="font-semibold mb-2">Submit Your Assessment</h3>
+          <h3 className="font-semibold mb-2">{getUploadTitle()}</h3>
           <p className="text-sm text-muted-foreground">
-            Upload your completed assessment document. Maximum 10 pages, 7000 words.
+            {getUploadDescription()}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Accepted formats: PDF, DOC, DOCX, TXT (Max 10MB)

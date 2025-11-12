@@ -10,6 +10,7 @@ import { useSyncQueue } from "@/hooks/useSyncQueue";
 import { SyncIndicator } from "./SyncIndicator";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useBatchSyncContext } from "@/contexts/BatchSyncContext";
+import { DocumentUpload } from "./DocumentUpload";
 
 interface FlashcardsTabProps {
   moduleId: string;
@@ -302,32 +303,40 @@ const FlashcardsTab = ({ moduleId, moduleTopic }: FlashcardsTabProps) => {
 
   if (flashcards.length === 0 && !isCreating) {
     return (
-      <Card className="shadow-card-custom">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Flashcards
-          </CardTitle>
-          <CardDescription>
-            Generate AI-powered flashcards or create your own to study {moduleTopic}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
-          <p className="text-muted-foreground mb-6 text-center">
-            No flashcards yet. Generate with AI or create your own!
-          </p>
-          <div className="flex gap-2">
-            <Button onClick={generateFlashcards} disabled={loading} size="lg">
-              <Sparkles className="w-4 h-4 mr-2" />
-              {loading ? "Generating..." : "Generate with AI"}
-            </Button>
-            <Button onClick={startCreating} variant="outline" size="lg">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Manually
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card className="shadow-card-custom">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Flashcards
+            </CardTitle>
+            <CardDescription>
+              Generate AI-powered flashcards or create your own to study {moduleTopic}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-12 gap-4">
+            <p className="text-muted-foreground mb-6 text-center">
+              No flashcards yet. Generate with AI or create your own!
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={generateFlashcards} disabled={loading} size="lg">
+                <Sparkles className="w-4 h-4 mr-2" />
+                {loading ? "Generating..." : "Generate with AI"}
+              </Button>
+              <Button onClick={startCreating} variant="outline" size="lg">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Manually
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <DocumentUpload 
+          moduleId={moduleId}
+          assessmentType="flashcard"
+          onUploadComplete={loadFlashcards}
+        />
+      </div>
     );
   }
 
