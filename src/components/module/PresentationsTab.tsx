@@ -599,6 +599,12 @@ const PresentationsTab = ({ moduleId, moduleTopic }: PresentationsTabProps) => {
           </Button>
         </div>
       )}
+
+      <DocumentUpload 
+        moduleId={moduleId}
+        assessmentType="presentation"
+        onUploadComplete={loadPresentations}
+      />
     </div>
   );
 };

@@ -482,6 +482,12 @@ const FlashcardsTab = ({ moduleId, moduleTopic }: FlashcardsTabProps) => {
           </Button>
         </div>
       )}
+
+      <DocumentUpload 
+        moduleId={moduleId}
+        assessmentType="flashcard"
+        onUploadComplete={loadFlashcards}
+      />
     </div>
   );
 };
