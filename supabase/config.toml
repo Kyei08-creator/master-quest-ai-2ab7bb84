@@ -57,6 +57,12 @@ verify_jwt = false
 [functions.grade-document]
 verify_jwt = true
 
+[functions.process-document-presentation]
+verify_jwt = true
+
+[functions.process-document-flashcards]
+verify_jwt = true
+
 # Database settings
 [db]
 major_version = 15

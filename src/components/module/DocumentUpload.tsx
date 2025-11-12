@@ -110,19 +110,51 @@ export const DocumentUpload = ({ moduleId, assessmentType, onUploadComplete }: D
       if (insertError) throw insertError;
 
       setSubmission(submissionData);
-      toast.success('Document uploaded successfully! AI grading in progress...');
 
-      // Trigger AI grading
-      const { error: gradeError } = await supabase.functions.invoke('grade-document', {
-        body: { submissionId: submissionData.id }
-      });
+      // Handle different processing based on assessment type
+      if (assessmentType === 'presentation') {
+        toast.success('Document uploaded! Generating presentation slides...');
+        
+        const { error: processError } = await supabase.functions.invoke('process-document-presentation', {
+          body: { submissionId: submissionData.id }
+        });
 
-      if (gradeError) {
-        console.error('Grading error:', gradeError);
-        toast.error('Document uploaded but grading failed. Please contact support.');
+        if (processError) {
+          console.error('Processing error:', processError);
+          toast.error('Failed to generate presentation. Please try again.');
+        } else {
+          toast.success('Presentation generated successfully!');
+          onUploadComplete?.();
+        }
+      } else if (assessmentType === 'flashcard') {
+        toast.success('Document uploaded! Generating flashcards...');
+        
+        const { error: processError } = await supabase.functions.invoke('process-document-flashcards', {
+          body: { submissionId: submissionData.id }
+        });
+
+        if (processError) {
+          console.error('Processing error:', processError);
+          toast.error('Failed to generate flashcards. Please try again.');
+        } else {
+          toast.success('Flashcards generated successfully!');
+          onUploadComplete?.();
+        }
       } else {
-        toast.success('Document graded successfully!');
-        onUploadComplete?.();
+        // For assignments, quizzes, and final tests - trigger grading
+        toast.success('Document uploaded successfully! AI grading in progress...');
+        
+        const { error: gradeError } = await supabase.functions.invoke('grade-document', {
+          body: { submissionId: submissionData.id }
+        });
+
+        if (gradeError) {
+          console.error('Grading error:', gradeError);
+          toast.error('Document uploaded but grading failed. Please contact support.');
+        } else {
+          toast.success('Document graded successfully!');
+          onUploadComplete?.();
+        }
       }
 
     } catch (error) {
@@ -250,12 +282,16 @@ export const DocumentUpload = ({ moduleId, assessmentType, onUploadComplete }: D
           {uploading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Uploading & Grading...
+              {assessmentType === 'presentation' && 'Generating Presentation...'}
+              {assessmentType === 'flashcard' && 'Generating Flashcards...'}
+              {!['presentation', 'flashcard'].includes(assessmentType) && 'Uploading & Grading...'}
             </>
           ) : (
             <>
               <Upload className="mr-2 h-4 w-4" />
-              Submit Document for AI Grading
+              {assessmentType === 'presentation' && 'Generate Presentation'}
+              {assessmentType === 'flashcard' && 'Generate Flashcards'}
+              {!['presentation', 'flashcard'].includes(assessmentType) && 'Submit Document for AI Grading'}
             </>
           )}
         </Button>
